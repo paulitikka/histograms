@@ -2,6 +2,8 @@
 """
 Created on Mon Jul 20 10:46:49 2020
 
+Major update:11.12.20
+
 @author: pauli
 """
 #Tikka et al 2020 Peer Review Word Count Histograms etc. codes (4.11.20, Tikka)
