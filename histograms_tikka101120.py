@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 20 10:46:49 2020 (Latest update from: 5.11.20 by Pauli Tikka)
+Created on Mon Jul 20 10:46:49 2020
 
 @author: pauli
 """
@@ -16,7 +16,8 @@ import pandas as pd #for importing files
 import numpy as np  #for calculations, array manipulations, and fun :)
 import matplotlib.pyplot as plt #for scientifical plots
 import os
-import seaborn
+import seaborn as sns
+import matplotlib.ticker as ticker
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import datetime
@@ -40,9 +41,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 import pandas as pd #for importing files
-
-#%% The next codes are for Figure 1 in manuscript (ver 3.11.2020, Tikka)
-#%Basic histogram for all count data first
+from docx import Document
+from docx.shared import Inches
+from docx.shared import Pt
+import string
+import seaborn as sns #This is what we test now (11.11.20, Tikka)
+#% The next codes are for Figure 1 in manuscript (ver 3.11.2020, Tikka)
+#%Basic histogram for all count data first (Fig 1A)
 #Bring the data in fight form:
 tot_res2=pd.read_csv('all_journals_tikka21720_ok.csv', index_col=None, header=0)
 #% Auxialiary, but imprtant variables for histo and bar functions:
@@ -53,8 +58,15 @@ tot_res2['Date'] =pd.to_datetime(tot_res2.Date)
 #%Thrid condition, the year
 #https://stackoverflow.com/questions/25146121/extracting-just-month-and-year-separately-from-pandas-datetime-column
 tot_res2['year'] = pd.DatetimeIndex(tot_res2['Date']).year  
-fonta=['Calibri', 20,'light',14] #To make these fonts show in graph, you need to enter twice..
+#Do I change to times new roman from Times New Roman? 'Times New Roman' 'times new roman', Times New Roman
+#del plt.font_manager.weight_dict['roman']
+#plt.font_manager._rebuild()
+fonta=['Times New Roman', 16,'light',16] #To make these fonts show in graph, you need to enter twice..
+#http://jonathansoma.com/lede/data-studio/matplotlib/list-all-fonts-available-in-matplotlib-plus-samples/
+#https://stackoverflow.com/questions/33955900/matplotlib-times-new-roman-appears-bold
+#Got the bold issue, see above (1.12.20)
 fig, ax = plt.subplots()
+#plt.rcParams["font.serif"] = "Times New Roman"
 plt.rcParams["font.family"] = fonta[0]
 plt.rcParams["font.size"] = fonta[1]
 plt.rcParams["font.weight"] = fonta[2]
@@ -62,41 +74,47 @@ plt.rcParams["axes.labelweight"] = fonta[2]
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 magazine=['BMC, BMJ and PLOS'] #this can be any other, e.g. 'BMJ', 'PLOS', or 'BMC, BMJ and PLOS' (i.e. ALL)
-title=magazine[0] + ' in 2003-2020'   #+titleX[0][0]  #the last one could be also 'titleX' variable for any year, see below
+title='Number of words used in the reviews'
+#magazine[0] + ' in 2003-2020'   #+titleX[0][0]  #the last one could be also 'titleX' variable for any year, see below
 plt.tight_layout()
 rng=tot_res2['Review Word Count']
-plt.hist(rng, bins=40, weights=np.ones(len(rng)) / len(rng),range=[0, 1600],alpha=1,label=title)
+#%
+# 1.12.202 if you do not have the legend/title, then take away the label from plt.hist next...
+plt.hist(rng, bins=40, weights=np.ones(len(rng)) / len(rng),range=[0, 1600],alpha=1)#,label=title)
+#csfont = {'fontname':'Times New Roman'}
+plt.suptitle(title, y=1,x=0.54, \
+             fontsize=16, fontfamily='Times New Roman')#, y=1.02)
+#https://kavigupta.org/2019/05/18/Setting-the-size-of-figures-in-matplotlib/
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-ax.legend(loc=(0.23,1),frameon=False,fontsize=fonta[3]) #You may want to specify the location: (0.35,0.97)
+#ax.legend(loc=(0.23,1),frameon=False,fontsize=fonta[3]) #You may want to specify the location: (0.35,0.97)
 #https://stackoverflow.com/questions/51473993/plot-an-histogram-with-y-axis-as-percentage-using-funcformatter
-plt.xlabel("Number of Words", size=fonta[1])
-plt.ylabel("Review Prevalence (%)", size=fonta[1])
+plt.xlabel("Number of words", size=fonta[1])
+#plt.xlabel('Number of words',size=fonta[1], family = 'Times New Roman', weight = 10)
+plt.ylabel("Proportion of reviews (%)", size=fonta[1])
 x_ticks = np.arange(0, 2100, 300) #the last is not 2021, but 2021-1, so for 2020 you need 2021
 plt.yticks(size=fonta[1])
 plt.xticks(x_ticks,size=fonta[1])
-labels=[['A)']] #note the double brackets, it works like that..
-blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
-#        https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
-#The location of this 'A)' legend needs to be fixed:
-leg = Legend(ax,labels=labels[0],loc=(-.17,1.01), handles=[blue_line],\
-             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-ax.add_artist(leg)
+#labels=[['A)']] #note the double brackets, it works like that..
+#blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
+##        https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
+##The location of this 'A)' legend needs to be fixed:
+#leg = Legend(ax,labels=labels[0],loc=(-.17,1.01), handles=[blue_line],\
+#             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#ax.add_artist(leg)
 plt.tight_layout()
 plt.margins(0.1, 0.1) #These are important
-my_dpi=1600
-from docx import Document
-from docx.shared import Inches
-from docx.shared import Pt
+my_dpi=3600
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()   
-plt.savefig("Histogram of all journal years and words_tikka15920.jpg",dpi=my_dpi)
-r.add_picture('C:\python\Histogram of all journal years and words_tikka15920.jpg', width = Inches(3))
+plt.savefig("Histogram of all journal years and words_tikka31220.jpg",dpi=my_dpi,bbox_inches='tight')
+r.add_picture('C:\python\Histogram of all journal years and words_tikka31220.jpg', width = Inches(3))
+document.save("C:\\python\\resultnap.docx")
 plt.show()
 #%At this stage, we are interested only all years or specific journals, so the very below variables 'X' are fyi
 titleX=[[" in 2003-2004"],[" in 2005-2006"],[" in 2007-2008"],[" in 2009-2010"],\
@@ -107,28 +125,30 @@ timeX=[[2003,2004],[2005,2006],[2007,2008],[2009,2010],\
        [2015],[2016],[2017],[2018],
        [2019],[2020]] 
 #https://www.kite.com/python/answers/how-to-make-a-list-of-the-alphabet-in-python
-import string
 alphabet_string = list(string.ascii_uppercase) #fyi, needed for multiplotting..
 alphabet_string2=[]
 for i in range(len(alphabet_string)):
     alphabet_string2.append(alphabet_string[i]+')')
 ABCs=alphabet_string2
-#%Adding more contraints to the histograms, and plotting them one-by-one for each jorunal
-ok=tot_res2['Review Word Count']<500 #this can be what you whant
+#%sAdding more contraints to the histograms, and plotting them one-by-one for each jorunal
+#(Fig 1B)
+ok=tot_res2['Review Word Count']<float('Inf')   #this can be what you want, e.g. float('Inf') or 500
 ok_bmc=tot_res2['Journal Name']=='BMC Medicine'
 ok_bmj=tot_res2['Journal Name']=='BMJ'
 ok_plos=tot_res2['Journal Name']=='PLOS Medicine'
-BMC=tot_res2.loc[ok_bmc]
-BMJ=tot_res2.loc[ok_bmj]
-PLOS=tot_res2.loc[ok_plos]
-Tot=tot_res2 #%This works for all..
-aza3=Tot.pivot_table(index=['Title of Article'], aggfunc='size') #this is for all
+BMC=tot_res2.loc[ok_bmc & ok]
+BMJ=tot_res2.loc[ok_bmj & ok]
+PLOS=tot_res2.loc[ok_plos & ok]
+Tot=tot_res2.loc[ok] #%This works for all..
+Tota=Tot.set_index(['Title of Article']).loc[np.unique(Tot['Title of Article'])]
+Tota=Tota['Review Word Count']
+aza3=pd.DataFrame(Tota).pivot_table(index=['Title of Article'], aggfunc='size') #this is for all
 #aza3=PLOS3.pivot_table(index=['Title of Article'], aggfunc='size') #this is for individuals
 aza3=pd.DataFrame(aza3)
 baza3=list(aza3[0])
 x=np.array(np.unique(baza3, return_counts=True))
 fig, ax = plt.subplots()
-fonta=['Calibri', 20,'light',14] #The same with the fonts here (as above), but should you wnat to change anything, 
+fonta=['Times New Roman', 16,'light',16] #The same with the fonts here (as above), but should you wnat to change anything, 
 #I inserted them again here:
 plt.rcParams["font.family"] = fonta[0]
 plt.rcParams["font.size"] = fonta[1]
@@ -140,38 +160,44 @@ plt.rc('ytick', labelsize=MEDIUM_SIZE)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 magazine=['BMC, BMJ and PLOS'] #this can be any other, e.g. 'BMJ', 'PLOS', or 'BMC, BMJ and PLOS' (i.e. ALL)
-title=magazine[0] + ' in 2003-2020'
+#title=magazine[0] + ' in 2003-2020'
 #magazine=['PLOS'] #this can be any other, see above
 #title= magazine[0]+ ' in 2019-2020'
 #plt.hist(a, bins=16,range=[b,c],label=title,width=0.5)  # arguments are passed to np.histogram
-ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,alpha=1,label=title)
+ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,alpha=1)#,label=title)
 ax.legend(loc=(0.26,0.99),frameon=False,fontsize=fonta[3]) #Check the location: 0 or (0.27,0.97)/'upper right
 #%Bar graph of the number of reviews per article to reach the first decision and other criteria
-plt.xlabel("Reviews for First Decision", size=fonta[1])
-plt.ylabel("Articles Reviewed", size=fonta[1])
-y_ticks=np.arange(0, 1400, 200)
+title='Number of reviewers utilized\n to evaluate the accepted articles'
+plt.suptitle(title, y=1.02,x=0.54, \
+             fontsize=16, fontfamily='Times New Roman')#, y=1.02)
+plt.xlabel("Reviews for first decision", size=fonta[1])
+plt.ylabel("Number of articles", size=fonta[1])
+y_ticks=np.arange(0, 1250, 200)
 plt.yticks(y_ticks,size=fonta[1])
 x_ticks=np.arange(1, np.max(x[0])+1, 1)
 plt.xticks(x_ticks, size=fonta[1])
-labels=[['B)']] #note the double brackets, it works like that..
-blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
-#https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
-#The location of this 'A)' legend needs to be fixed:
-leg = Legend(ax,labels=labels[0],loc=(-.17,1.01), handles=[blue_line],\
-             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-ax.add_artist(leg)
+#labels=[['B)']] #note the double brackets, it works like that..
+#blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
+##https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
+##The location of this 'A)' legend needs to be fixed:
+#leg = Legend(ax,labels=labels[0],loc=(-.17,1.01), handles=[blue_line],\
+#             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#ax.add_artist(leg)
 plt.tight_layout()
 plt.margins(0.1, 0.1) #These are important
 #plt.axis((-0.5,10,-0.5,1200)) #check this if needed..
 #plt.savefig("Histogram__less than 500 words_allyears_tikka4820.png")
 #plt.title("All reviewed years for all journal less than 500 words")
-my_dpi=1600   
-plt.savefig("Histogram of all reviews_tikka18920.jpg",dpi=my_dpi)
-r.add_picture('C:\python\Histogram of all reviews_tikka18920.jpg', width = Inches(3))
-document.save("C:\\python\\resultna.docx")
+my_dpi=3600   
+plt.savefig("Histogram of all reviews_tikka181120.jpg",dpi=my_dpi,bbox_inches='tight')
+r.add_picture('C:\python\Histogram of all reviews_tikka181120.jpg', width = Inches(3))
+document.save("C:\\python\\resultnap.docx")
 #figsize=(800/my_dpi, 800/my_dpi)
 plt.show()
- 
+#% Testing sns for the visualization:
+#https://jakevdp.github.io/PythonDataScienceHandbook/04.14-visualization-with-seaborn.html
+#% For rng, something needs till revising (11.11.20, Tikka).. works for Fig 1B data (but for histos):
+#https://github.com/mwaskom/seaborn/issues/1930
 #%%Interquortile ranges for each journal in each year, Table 1 (or S1) in manu (3.11.20, Tikka):
 a = []
 b = []
@@ -187,7 +213,7 @@ BMCtot=[]
 for i in range(len(av2)):
     av1.append(tot_res2['year']==av2[i])
     BMCtot.append(tot_res2.loc[ok_bmc & av1[i],'Review Word Count']) 
-    #check the condition 'ok_bmc' in other journals, ok_bmj/ok_plos
+#check the condition 'ok_bmc' in other journals, ok_bmj/ok_plos
 #    https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
 for i in range(len(av2)):
     a.append(len(BMCtot[i]))
@@ -233,7 +259,7 @@ for i in range(len(lena)):
     tayeara.append(tot_articles_t[conda[i] & conda2])
     yebyea.append(len(tayeara[i]))    
 #tot_articles03=len(np.unique(tot_res2.loc[:,'Title of Article']))
-#% All reviews (no_below500_tot) or journal revious (.._bmc) that used number of words below 500:
+#% All reviews (no_below500_tot) or journal revious (.._bmc) that used Number of words below 500:
 #BMJ senior word count:
 senior1=[]
 senior2=[]
@@ -284,7 +310,7 @@ rng=sap
 ##https://stackoverflow.com/questions/3777861/setting-y-axis-limit-in-matplotlib
 ax = plt.subplot(111) #This is for one figure and now up/right lines or the box
 #https://stackoverflow.com/questions/925024/how-can-i-remove-the-top-and-right-axis-in-matplotlib
-#fonta=['Calibri', 16,'light',14]
+fonta=['Times New Roman', 16,'light',16]
 plt.rcParams["font.family"] = fonta[0] #I need to insert these quite many times:
 plt.rcParams["font.size"] = fonta[1]
 plt.rcParams["font.weight"] = fonta[2]
@@ -292,40 +318,47 @@ plt.rcParams["axes.labelweight"] = fonta[2]
 ax.spines['right'].set_visible(False) #no box is needed!
 ax.spines['top'].set_visible(False)
 #https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
-plt.hist(rng, bins=40, weights=np.ones(len(rng)) / len(rng),range=[0, 1600],alpha=1, label="All journals")
+plt.hist(rng, bins=40, weights=np.ones(len(rng)) / len(rng),range=[0, 1600],alpha=1)#, label="All journals")
+plt.suptitle('Number of words used in \nreviews by senior scientists', \
+             fontsize=16, fontfamily='Times New Roman', y=1.02)
+#https://matplotlib.org/api/_as_gen/matplotlib.pyplot.suptitle.html
+#plt.title('Histogram of number of words \n in a selection of senior reviewers')
+#plt.text(fontfamily='Times New Roman')
 plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
 #https://stackoverflow.com/questions/51473993/plot-an-histogram-with-y-axis-as-percentage-using-funcformatter
-plt.xlabel("Number of Words", size=fonta[1])
-plt.ylabel("Review percentage (%)", size=fonta[1])
-y_ticks=np.arange(0, 0.07, 0.01)
+plt.xlabel("Number of words", size=fonta[1])
+plt.ylabel("Proportion of reviews (%)", size=fonta[1])
+y_ticks=np.arange(0, 0.08, 0.01)
 plt.yticks(y_ticks,size=fonta[1]) #If size too bick, you can change, e.g. fonta or directly
 x_ticks = np.arange(0, 2100, 300)
 plt.xticks(x_ticks, color='k', size=fonta[1], visible=True)
 plt.legend(loc=0,frameon=False,fontsize=fonta[3])
 plt.tight_layout()
 plt.margins(0.05, 0.05) #These are important
-my_dpi=1600
+my_dpi=3600
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()   
 #plt.savefig("Histogram of all journal years and words_tikka15920.jpg",dpi=my_dpi)
-#r.add_picture('C:\python\Histogram of all journal years and words_tikka15920.jpg', width = Inches(4))   
-plt.savefig("Histogram of all senior reviews_tikka16920.jpg",dpi=my_dpi)
-r.add_picture('C:\python\Histogram of all senior reviews_tikka16920.jpg', width = Inches(4)) 
+#r.add_picture('C:\python\Histogram of all journal years and words_tikka15920.jpg', width = Inches(4))  
+#https://kavigupta.org/2019/05/18/Setting-the-size-of-figures-in-matplotlib/ 
+plt.savefig("Histogram of all senior reviews_tikka16920.jpg",dpi=my_dpi,bbox_inches='tight')
+r.add_picture('C:\python\Histogram of all senior reviews_tikka16920.jpg', width = Inches(5)) 
 document.save("C:\\python\\resultXA.docx")
 plt.show()
 
-#%%This is for figure 3 in manuscript (ver. 3.11.2020)
-#One possibility (not used)..
+#%%This is for figure 3 (and exceptionally also figure S13, since ..
+# the difference is small) in manuscript (ver. 3.11.2020)
+#One possibility to do the figure could have been (not used)..
 #https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/bar_stacked.html
 #%BUT Better possibility
 #https://python-graph-gallery.com/13-percent-stacked-barplot/
-def stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=16):
+def stack_plt(tot_res2, journal='BMC Medicine', fontX=20):
 #    journal='PLOS Medicine'
 #    ABC=['A)']
     ok1=tot_res2['Review Word Count']<50 #this can be what you want
@@ -339,6 +372,8 @@ def stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=16):
     ok5b=tot_res2['Review Word Count']<400
     ok6a=tot_res2['Review Word Count']>399
     ok6b=tot_res2['Review Word Count']<500 
+    ok7=tot_res2['Review Word Count']>499 #This makes figure S13, ..
+    # commenting it out with the corresponding places below will make fiugre 3
     ok_bmc=tot_res2['Journal Name']==journal #change the journal
     years=np.unique(tot_res2.loc[ok_bmc,'year'])
     ind=years
@@ -413,6 +448,7 @@ def stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=16):
             bmc300to400.append(len(BMC300_400.loc[axi[i]]))
         elif len(np.array([BMC300_400.loc[axi[i]]]).shape)==1: #the year has just one value
             bmc300to400.insert(i,1) 
+    
     BMC400_500=tot_res2.loc[ok_bmc & ok6a & ok6b].set_index('year') #len(BMC400_500): 427
     BMC400_500=BMC400_500['Review Word Count']
     bmc400to500=[]   
@@ -428,56 +464,84 @@ def stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=16):
         if len(np.array([BMC400_500.loc[axi[i]]]).shape)==2: #the year has more than one values
             bmc400to500.append(len(BMC400_500.loc[axi[i]]))
         elif len(np.array([BMC400_500.loc[axi[i]]]).shape)==1: #the year has just one value
-            bmc400to500.insert(i,1) 
+            bmc400to500.insert(i,1)            
+    BMC500=tot_res2.loc[ok_bmc & ok7].set_index('year') #len(BMC400_500): 427  / and e.g. so this block away for figure 3
+    BMC500=BMC500['Review Word Count']
+    bmc500=[]   
+    argh=set(ind) - set(np.unique(BMC500.index))
+    if len(argh)>0 and len(argh)<2:
+        bmc500.insert(0,0)
+    elif len(argh)>1:
+        bmc500.insert(0,0)
+        bmc500.insert(0,0)
+    argh2=set(ind) & set(np.unique(BMC500.index))
+    axi=np.sort(list(argh2))
+    for i in range(len(axi)):
+        if len(np.array([BMC500.loc[axi[i]]]).shape)==2: #the year has more than one values
+            bmc500.append(len(BMC500.loc[axi[i]]))
+        elif len(np.array([BMC500.loc[axi[i]]]).shape)==1: #the year has just one value
+            bmc500.insert(i,1)
 #   Data
     r = np.arange(0,len(ind),1) #Change the r's XYZ parameter according to NO of years of journal (2,6,18): r=p.arange(0,XYZ,1)
     #In my case, Let the greenBars be 0-150, orange 150-300, and blue 300-500 for starters
     raw_data = {'greenBars': list(bmc0to100), 'orangeBars': list(bmc100to200),\
-                'blueBars': list(bmc200to300), 'a': list(bmc300to400), 'b': list(bmc400to500)}
+                'blueBars': list(bmc200to300), 'a': list(bmc300to400), 'b': list(bmc400to500), 'c': list(bmc500)} #c for S13
     df = pd.DataFrame(raw_data)#, index=ind, \
 #   From raw value to percentage
     totals=[]
-    totals = [i+j+k+ii+jj for i,j,k,ii,jj in zip(df['greenBars'],df['orangeBars'],df['blueBars'],df['a'],df['b'])]
+    totals = [i+j+k+ii+jj+kk for i,j,k,ii,jj,kk in zip(df['greenBars'],df['orangeBars'],df['blueBars'],df['a'],df['b'],df['c'])]
     greenBars = [i / j * 100 for i,j in zip(df['greenBars'], totals)]
     orangeBars = [i / j * 100 for i,j in zip(df['orangeBars'], totals)]
     blueBars = [i / j * 100 for i,j in zip(df['blueBars'], totals)]
     a = [i / j * 100 for i,j in zip(df['a'], totals)]
-    b = [i / j * 100 for i,j in zip(df['b'], totals)]    
+    b = [i / j * 100 for i,j in zip(df['b'], totals)]
+    c = [i / j * 100 for i,j in zip(df['c'], totals)]  #for S13   
     # plot
     barWidth = 0.85
     names = ind#('A','B','C','D','E')
     # Create green Bars
+#    import matplotlib._color_data as mcd
+#    import matplotlib.patches as mpatch
+#    import matplotlib.style
+#    import matplotlib as mpl
+#    mpl.style.use('classic')
     fig, ax = plt.subplots() #If this is here, we get the exes ok..
-    plt.bar(r, greenBars, color='#b5ffb9', edgecolor='white', width=barWidth, label="0-100 Words")
+    plt.bar(r, greenBars, color='g', edgecolor='white', width=barWidth, label="0  -  99   Words") ##b5ffb9
     #% Create orange Bars
-    plt.bar(r, orangeBars, bottom=greenBars, color='#f9bc86', edgecolor='white', width=barWidth, label="100-200 Words")
+    plt.bar(r, orangeBars, bottom=greenBars, color='r', edgecolor='white', width=barWidth, label="100-199 Words") ##f9bc86
     # Create blue Bars
     plt.bar(r, blueBars, bottom=[i+j for i,j in zip(greenBars, orangeBars)],\
-                                 color='#a3acff', edgecolor='white', width=barWidth, label="200-300 Words")
+                                 color='b', edgecolor='white', width=barWidth, label="200-299 Words") ##a3acff
     plt.bar(r, a, bottom=[i+j+k for i,j,k in zip(greenBars, orangeBars,blueBars)],\
-                                 color='black', edgecolor='white', width=barWidth, label="300-400 Words")
+                                 color='black', edgecolor='white', width=barWidth, label="300-399 Words")
     plt.bar(r, b, bottom=[i+j+k+z for i,j,k,z in zip(greenBars, orangeBars,blueBars,a)],\
                                  color='grey', edgecolor='white', width=barWidth, label="400-500 Words")
+    plt.bar(r, c, bottom=[i+j+k+z+za for i,j,k,z,za in zip(greenBars, orangeBars,blueBars,a,b)],\
+                                 color='yellow', edgecolor='white', width=barWidth, label="500   <   Words") #For S13
     # Custom x axis
-    fonta=['Calibri', 20,'light',20] #To make these fonts show in graph, you need to enter twice..
-    plt.xticks(r, names,size=fontX)#, weight='bold')
-    plt.yticks(size=fonta[1])
+    fonta=['Times New Roman', 20,'light',20] #To make these fonts show in graph, you need to enter twice..
+    plt.xticks(r, names,size=20)#, weight='bold')
+    y_ticks=np.arange(0, 120, 20)
+    plt.yticks(y_ticks,size=20)
     #https://stackoverflow.com/questions/20337664/cleanest-way-to-hide-every-nth-tick-label-in-matplotlib-colorbar
     plt.tight_layout()
-    plt.xlabel("Year", size=fonta[1])
-    plt.ylabel("Reviews in Group (%)", size=fonta[1])
+    title='Annual short reviews ('+journal+')'
+    plt.suptitle(title, y=1,x=0.54, \
+             fontsize=20, fontfamily='Times New Roman')#, y=1.02)
+    plt.xlabel("Year", size=20)
+    plt.ylabel("Proportion of reviews (%)", size=20)
 #    fig, ax = plt.subplots()
     from matplotlib.legend import Legend
     import matplotlib.lines as mlines 
 #    ax.legend(loc=0,frameon=False,fontsize=fonta[3]) #You may want to specify the location: (0.35,0.97)
     #https://stackoverflow.com/questions/51473993/plot-an-histogram-with-y-axis-as-percentage-using-funcformatter
-    labels=[[ABC[0]]] #this works #note the double brackets, it works like that..
-    blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
-#https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
-#The location of this 'A)' legend needs to be fixed:
-    leg = Legend(ax,labels=labels[0],loc=(-.2,1.01), handles=[blue_line],\
-             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-    ax.add_artist(leg)
+#    labels=[[ABC[0]]] #this works #note the double brackets, it works like that..
+#    blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
+##https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
+##The location of this 'A)' legend needs to be fixed:
+#    leg = Legend(ax,labels=labels[0],loc=(-.2,1.01), handles=[blue_line],\
+#             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#    ax.add_artist(leg)
     if len(ind)>6:
         ax = plt.gca()
         temp = ax.xaxis.get_ticklabels()
@@ -485,8 +549,7 @@ def stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=16):
         for label in temp:
             label.set_visible(False)
     else:
-        pass
-    
+        pass    
     plt.tight_layout()   
     plt.rcParams["font.family"] = fonta[0]
     plt.rcParams["font.size"] = fonta[1]
@@ -496,12 +559,12 @@ def stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=16):
     ax.spines['top'].set_visible(False)
     if len(ind)<3:
         plt.legend(loc=(1.0,0.1),bbox_to_anchor=(1.0,0.1), ncol=1,fontsize=fonta[1],frameon=False)     
-        #or check the location, e.g. 'upper left'        
+#        or check the location, e.g. 'upper left'        
     else:
         pass
     plt.margins(0.05,0.05) #These are important
-    my_dpi=1600   
-    plt.savefig("Stack plot_tikka271020"+journal+'.jpg',dpi=my_dpi,bbox_inches='tight')
+    my_dpi=2000   
+    plt.savefig("Stack plot_tikka101220"+journal+'.jpg',dpi=my_dpi,bbox_inches='tight')
 #    https://stackoverflow.com/questions/9651092/my-matplotlib-pyplot-legend-is-being-cut-off/42303455
     #% Show graphic
     plt.show()
@@ -512,21 +575,22 @@ from docx.shared import Pt
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()
-stack_plt(tot_res2, journal='BMC Medicine',ABC=['A)'], fontX=20)
-stack_plt(tot_res2, journal='BMJ',ABC=['B)'],fontX=20)   
-stack_plt(tot_res2, journal='PLOS Medicine',ABC=['C)'],fontX=20) 
-r.add_picture('C:\python\\Stack plot_tikka271020BMC Medicine.jpg', width = Inches(2.5))   
-r.add_picture('C:\python\\Stack plot_tikka271020BMJ.jpg', width = Inches(2.5))  
-r.add_picture('C:\python\\Stack plot_tikka271020PLOS Medicine.jpg', width = Inches(2.5))  
-document.save("C:\\python\\resultZ.docx")
+stack_plt(tot_res2, journal='BMC Medicine', fontX=20) # if needed: ABC=['A)'],
+stack_plt(tot_res2, journal='BMJ',fontX=20)   
+stack_plt(tot_res2, journal='PLOS Medicine',fontX=20) 
+r.add_picture('C:\python\\Stack plot_tikka101220BMC Medicine.jpg', width = Inches(1.75))   
+r.add_picture('C:\python\\Stack plot_tikka101220BMJ.jpg', width = Inches(1.75))  
+r.add_picture('C:\python\\Stack plot_tikka101220PLOS Medicine.jpg', width = Inches(2.5))  
+document.save("C:\\python\\resultZane.docx")
 #%% This is for figures 4 and S6-9 in manuscript (ver. 3.11.2020)
+#This is going to change somewhat (ver. 2.12.20)
 #To get CIs in python is not straigthfoward:
-def preval_pers(tot_res2, count=200,num=1,ABC=['B)']):
+def preval_pers(tot_res2, count=100,num=1,ABC=['B)']):
     l2o=pd.concat([tot_res2])
     ok=np.unique(l2o[l2o.columns[1]])
     PL3=l2o.set_index(l2o.columns[1])
@@ -603,7 +667,7 @@ def preval_pers(tot_res2, count=200,num=1,ABC=['B)']):
         asya.append(list([np.array([asymmetric_error[0][i]]),np.array([asymmetric_error[1][i]])]))
     x = np.arange(0, 4, 1)
     fig, ax = plt.subplots() #
-    fonta=['Calibri', 22,'light',22]
+    fonta=['Times New Roman', 16,'light',16]
     plt.rcParams["font.family"] = fonta[0]
     plt.rcParams["font.size"] = fonta[1]
     plt.rcParams["font.weight"] = fonta[2]
@@ -625,8 +689,7 @@ def preval_pers(tot_res2, count=200,num=1,ABC=['B)']):
     #plt.tight_layout()
     #plt.margins(0.1, 0.1) #These are important
     # https://stackoverflow.com/questions/3899980/how-to-change-the-font-size-on-a-matplotlib-plot
-    for i in range(0,4):
-        
+    for i in range(0,4):        
         plt.plot(label[i],y[i],fmt[i],color =color[i],linewidth=2, label=label[i])
     #    https://matplotlib.org/3.2.2/api/_as_gen/matplotlib.axes.Axes.plot.html
         ax = plt.gca()
@@ -636,16 +699,16 @@ def preval_pers(tot_res2, count=200,num=1,ABC=['B)']):
         plt.yticks(size=fonta[3])
         plt.xticks(color='k', size=fonta[3], visible=True)
         ax.legend(loc=(0.75,0.4),frameon=False,fontsize=fonta[3]) #%% 0/
-        plt.axis((-0.5,4,-0.5,80)) #check this if needed..
+        plt.axis((-0.5,4,-0.5,20)) #check this if needed..
 #        https://stackoverflow.com/questions/22016965/removing-frame-while-keeping-axes-in-pyplot-subplots/44216223
     #        https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
         plt.tight_layout()
         plt.margins(0.3, 0.1) #These are important
-        plt.ylabel("Review Prevalence (%)", size=fonta[1])
+        plt.ylabel("Proportion of reviews (%)", size=fonta[1])
         plt.xlabel("Journal", size=fonta[1])  
         my_dpi=1200   
-        plt.savefig('C:\python\images2a\Review Prevalence(%)_tikka7920_'+str(num)+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi))
-
+        plt.savefig('C:\python\images2a\Proportion of reviews(%)_tikka7920_'+str(num)+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi))
+        
     return aap, bbp
 #https://stackoverflow.com/questions/19863368/matplotlib-legend-background-color
 #https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
@@ -657,20 +720,179 @@ from docx.shared import Pt
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()
-preval_pers(tot_res2, count=500,num=1,ABC=['A)'])
-preval_pers(tot_res2, count=500,num=2,ABC=['B)'])
-preval_pers(tot_res2, count=500,num=3,ABC=['C)'])
-r.add_picture('C:\python\images2a\Review Prevalence(%)_tikka7920_1.jpg', width = Inches(2))
-r.add_picture('C:\python\images2a\Review Prevalence(%)_tikka7920_2.jpg', width = Inches(2))
-r.add_picture('C:\python\images2a\Review Prevalence(%)_tikka7920_3.jpg', width = Inches(2))
-document.save("C:\\python\\images2a\\resultn.docx")
+preval_pers(tot_res2, count=100,num=1,ABC=['A)'])
+preval_pers(tot_res2, count=100,num=2,ABC=['B)'])
+preval_pers(tot_res2, count=100,num=3,ABC=['C)'])
+r.add_picture('C:\python\images2a\Proportion of reviews(%)_tikka41220_1.jpg', width = Inches(2))
+r.add_picture('C:\python\images2a\Proportion of reviews(%)_tikka41220_2.jpg', width = Inches(2))
+r.add_picture('C:\python\images2a\Proportion of reviews(%)_tikka41220_3.jpg', width = Inches(2))
+document.save("C:\\python\\images2a\\resultnopaas.docx")
 #https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+#%% Fig 4 redo, starting 4.12.20, tikka, comments of changes in the code (should be about ok 8.12.20):
+def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #no panel letters..
+    #%
+#    journal='BMC Medicine' # or journal='BMC Medicine' or 'all journals'
+#    col='g'
+#    count=100
+#    num=1
+    l2o=pd.concat([tot_res2])
+    ok=np.unique(l2o[l2o.columns[1]])
+    a1=len(ok)
+    PL3=l2o.set_index(l2o.columns[1])    
+    lehs=PL3.loc[ok]
+    jot=[]
+    if journal!='all journals':
+        plehs=lehs[lehs.loc[:,'Journal Name']==journal]
+        pok=np.unique(plehs.index)   
+        for i in range(len(pok)):
+            try:
+                if len(plehs.loc[pok[i],'Review Word Count']<count)>1:
+                    jot.append(int(sum(plehs.loc[pok[i],'Review Word Count']<count))/int(len(plehs.loc[pok[i]])))
+            except:
+        #            https://stackoverflow.com/questions/20840803/how-to-convert-false-to-0-and-true-to-1-in-python
+                if (plehs.loc[pok[i],'Review Word Count']<count)==False or \
+            (plehs.loc[pok[i],'Review Word Count']<count)==True:
+                    jot.append((int(plehs.loc[pok[i],'Review Word Count']<count=='true'))/1)
+                else:
+                    jot.append(0)
+    elif journal=='all journals':
+        for i in range(len(ok)):
+            try:
+                if len(lehs.loc[ok[i],'Review Word Count']<count)>1:
+                    jot.append(int(sum(lehs.loc[ok[i],'Review Word Count']<count))/int(len(lehs.loc[ok[i]])))
+            except:
+        #            https://stackoverflow.com/questions/20840803/how-to-convert-false-to-0-and-true-to-1-in-python
+                if (lehs.loc[ok[i],'Review Word Count']<count)==False or \
+            (lehs.loc[ok[i],'Review Word Count']<count)==True:
+                    jot.append((int(lehs.loc[ok[i],'Review Word Count']<count=='true'))/1)
+                else:
+                    jot.append(0)
+                    
+    jota=pd.DataFrame(jot)
+    b1=sum(jota[0]==1)   
+    tot=np.round(b1/a1*100,2)
+    b2=sum(jota[0]>=0.5)  
+    tot50=np.round(b2/a1*100,2)
+    b3=sum(jota[0]>=0.33)  
+    tot33=np.round(b3/a1*100,2)
+    b4=sum(jota[0]>=0.2)  
+    tot20=np.round(b4/a1*100,2)
+    y=[tot,tot50,tot33,tot20]
+    from math import sqrt
+    def wilson(p, n, z = 1.96):
+        denominator = 1 + z**2/n
+        centre_adjusted_probability = p + z*z / (2*n)
+        adjusted_standard_deviation = sqrt((p*(1 - p) + z*z / (4*n)) / n)    
+        lower_bound = (centre_adjusted_probability - z*adjusted_standard_deviation) / denominator
+        upper_bound = (centre_adjusted_probability + z*adjusted_standard_deviation) / denominator
+        return (lower_bound, upper_bound)
+    tit=[]
+    for i in range(0,4):
+        tit.append([y[i]-np.round(100*(wilson(y[i]/100, a1)[0]),2),\
+                    np.round(100*(wilson(y[i]/100, a1)[1]),2)-y[i]])
+    x=['100%', '50% ≤', '33% ≤','20% ≤']
+    fonta=['Times New Roman', 16,'light',16]
+#    https://matplotlib.org/3.1.0/gallery/color/named_colors.html
+#    https://stackoverflow.com/questions/47074423/how-to-get-default-blue-colour-of-matplotlib-pyplot-scatter/47074742
+#    plt.scatter(x,y,color ='C0',linewidth=2)#, label=label[i])
+    lolims=np.array(pd.DataFrame(tit)[0])
+    uplims=np.array(pd.DataFrame(tit)[1])
+    asymmetric_error=[lolims, uplims]
+    plt.errorbar(x,y,yerr=asymmetric_error, color=col,fmt='o',capsize=5)
+    title='Positive decision using short reviews\n (words<'+str(count)+') at'+' articles of '+journal
+    plt.suptitle(title, y=1.05,x=0.5, \
+             fontsize=16, fontfamily='Times New Roman')#, y=1.02)
+    ax = plt.gca()
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+#    https://matplotlib.org/3.2.2/api/_as_gen/matplotlib.axes.Axes.plot.html
+#    plt.errorbar(x[i],y[i],yerr=asya[i], color=color[i],fmt=fmt[i],capsize=5)
+#    https://matplotlib.org/devdocs/gallery/statistics/errorbar_features.html
+    plt.grid(False)
+    
+    if np.max(y)>40:
+        y_ticks=np.arange(0, np.round(np.max(y))+8, 10)   
+    elif np.max(y)>25 and np.max(y)<40:
+        y_ticks=np.arange(0, np.round(np.max(y))+5, 5)
+    elif np.max(y)>9 and np.max(y)<25:
+        y_ticks=np.arange(0, np.round(np.max(y))+3, 2)
+    elif np.max(y)<10 and np.max(y)>2.6:
+        y_ticks=np.arange(0, np.round(np.max(y))+2, 1)
+    elif np.max(y)<2.6:
+        y_ticks=np.arange(0, np.round(np.max(y))+1, 0.4)
+        
+    plt.yticks(y_ticks,size=fonta[1])
+    plt.xticks(size=fonta[1], visible=True)
+#    ax.legend(loc=(0.75,0.4),frameon=False,fontsize=fonta[1]) #%% 0/
+#    plt.axis((-0.5,4,-0.5,16)) #check this if needed..
+#        https://stackoverflow.com/questions/22016965/removing-frame-while-keeping-axes-in-pyplot-subplots/44216223
+#        https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+    plt.tight_layout()    
+###    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
+    if num==4:
+        from matplotlib.lines import Line2D
+        cmap = plt.cm.coolwarm
+#        https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
+        custom_lines = [Line2D([0], [0], color='C0', lw=4),
+                        Line2D([0], [0], color='green', lw=4),
+                        Line2D([0], [0], color='red', lw=4),
+                        Line2D([0], [0], color='black', lw=4)]
 
+        ax.legend(custom_lines, ['All', 'BMC', 'BMJ','PLOS'],frameon=False)
+    else:
+        pass
+       
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.margins(0.1, 0.1) #These are important
+    plt.ylabel("Proportion of reviews (%)", size=fonta[1])
+    plt.xlabel("Percentage categories", size=fonta[1])  
+    my_dpi=2400   
+    plt.savefig('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_'+str(num)+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi),bbox_inches='tight')        
+    plt.close()
+    #%
+    return y
+#%%
+from docx import Document
+from docx.shared import Inches
+from docx.shared import Pt
+document= Document()
+document.add_heading("My results!")
+font = document.styles['Normal'].font
+font.name = 'Times New Roman'
+font.size =Pt(10)
+p = document.add_paragraph("Peer Review Analysis \n")
+p.style = document.styles['Normal']
+r = p.add_run()   
+preval_pers2(tot_res2, count=500, journal='all journals', col='C0',num=1)
+r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_1.jpg', width = Inches(3))
+preval_pers2(tot_res2, count=500, journal='BMC Medicine', col='g',num=2)
+r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_2.jpg', width = Inches(3))
+preval_pers2(tot_res2, count=500, journal='BMJ', col='red',num=3)
+r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_3.jpg', width = Inches(3))
+preval_pers2(tot_res2, count=500, journal='PLOS Medicine', col='black',num=4)
+r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_4.jpg', width = Inches(3))
+document.save("C:\\python\\Fig4_revised\\results7.docx")
+#    tot=np.round(b1/a1*100,2) #this is the tot for first panel 100%..not necessarily so, i.e.:
+    #out of all journal decisions that were made 
+#    (so this is our denominator – this will be equal to the number of articles (not reviewers) 
+#   that we have in our dataset), the percentage of decisions 
+#   that were based on a set of peer reviews that had 
+#   i) 100% short peer reviews, ii) >=50% short peer reviews, 
+#   iii) >=33% short peer reviews, and iv) >=20% short peer reviews, aha, ok!  
+##    https://www.mikulskibartosz.name/wilson-score-in-python-example/
+    ##https://stackoverflow.com/questions/22016965/removing-frame-while-keeping-axes-in-pyplot-subplots/44216223
+    ##https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+    # https://stackoverflow.com/questions/3899980/how-to-change-the-font-size-on-a-matplotlib-plot
+#    #    https://matplotlib.org/devdocs/gallery/statistics/errorbar_features.html
+#https://stackoverflow.com/questions/19863368/matplotlib-legend-background-color
+#https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+#https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot    
 #%% Table S1 in manuscript (3.11.2020)
 # Here you put either one journal or all yournals (i.e. yr_all/yrb), 
 def sample_char(tot_res2):
@@ -686,12 +908,10 @@ def sample_char(tot_res2):
     new_tot=[]
     new_bmc=[]
     new_bmj=[]
-    new_plos=[]
-   
+    new_plos=[]   
     for j in range(len(av2)): #check the years for bmj and plos, av2a
-
         new_tot.append(yna.loc[av2[j]].pivot_table(index=[yna.columns[1]], aggfunc='size')) 
-        #Thi above tells the unique articles, (and not the reviewer amoutns..)
+        #This above tells the unique articles, (and not the reviewer amoutns..)
         new_bmc.append(ynb.loc[av2[j]].pivot_table(index=[ynb.columns[1]], aggfunc='size'))
     for j in range(len(np.unique(ar_bmj['year']))): #check the years for bmj and plos, av2a
         new_bmj.append(ync.loc[np.unique(ar_bmj['year'])[j]].pivot_table(index=[ync.columns[1]], aggfunc='size')) 
@@ -738,12 +958,14 @@ for i in range(len(totaalix)):
 apply2=pd.DataFrame(apply, index=['All','BMC','BMJ','PLOS'], columns=['Mean','Std','Median','Q25','Q75'])
 #%% Figures S1-S3 (manuscript ver 3.11.2020, Tikka)
 #With percentages/prevalences the review for each journal (13.8.20/26.3.20), e.g. for plos, 
-def each_jour(tot_res2,journal='BMC Medicine',babel=['A)','B)'],name=' in 2003-2020', count=500):
+#These will also change for the current version (9.12.20, tikka)
+def each_jour(tot_res2,journal='BMC Medicine', count=float('Inf'), color='g'):
     #%
-    ok=tot_res2['Review Word Count']<count #this can be what you want
+#    count=float('Inf')  #500, float('Inf') etc.
+#    ok=tot_res2['Review Word Count']<count #this can be what you want
     #%
 #    journal='BMC Medicine'
-#    babel=['A)','B)']
+#    babel=['A)','B)'] #add to function if needed
 #    labels.append('A)')
 #    labels.append('B)')
 #    name=' in 2003-2020'
@@ -768,107 +990,125 @@ def each_jour(tot_res2,journal='BMC Medicine',babel=['A)','B)'],name=' in 2003-2
     x=np.array(np.unique(baza3, return_counts=True))
     rng=BMC.loc[ok,'Review Word Count'] #This is so much clearer now..
     magazine=[journal] #this can be any other, see above
-    title= magazine[0] + name
+#    title= magazine[0] + name
     #magazine[0]
-    fonta=['Calibri', 20,'light',14] 
+
     fig, ax = plt.subplots()
+    fonta=['Times New Roman', 20,'light',20] 
     #you need to enter these few lines twice to see the results..
     plt.rcParams["font.family"] = fonta[0]
     plt.rcParams["font.size"] = fonta[1]
     plt.rcParams["font.weight"] = fonta[2]
     plt.rcParams["axes.labelweight"] = fonta[2]
-    x_ticks=np.arange(0, 1800, 100)
-    y_ticks=np.arange(0, 0.04, 0.01)
+    x_ticks=np.arange(0, 501, 100)
+    y_ticks=np.arange(0, 0.1, 0.01)
     plt.yticks(y_ticks,size=fonta[1])
     plt.xticks(x_ticks, size=fonta[1])
-    plt.hist(rng, bins=40, weights=np.ones(len(rng)) / len(rng),range=[0, 500],alpha=1,label=title)
+    plt.hist(rng, bins=40, weights=np.ones(len(rng)) / len(rng),range=[0, 501],alpha=1,color=color)#,label=title)
+    title='Number of words used at '+journal
+    plt.suptitle(title, y=1.05,x=0.6, \
+             fontsize=20, fontfamily='Times New Roman')#, y=1.02)
     plt.gca().yaxis.set_major_formatter(PercentFormatter(1, decimals=1))   
-    ax.legend(loc=(0.2,1),frameon=False,fontsize=fonta[3]) #You may want to specify the location: (0.5,0.97)
+#    ax.legend(loc=(0.3,1),frameon=False,fontsize=fonta[3]) #You may want to specify the location: (0.5,0.97)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     #https://stackoverflow.com/questions/51473993/plot-an-histogram-with-y-axis-as-percentage-using-funcformatter
-    plt.xlabel("Number of Words", size=fonta[1])
-    plt.ylabel("Review Prevalence (%)", size=fonta[1])
+    plt.xlabel("Number of words", size=fonta[1])
+    plt.ylabel("Proportion of reviews (%)", size=fonta[1])
     #labels=[ABC[0]] #this works!
     ##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
-    from matplotlib.legend import Legend
-    import matplotlib.lines as mlines  
-    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
-                      markersize=0)          #color='blue', marker='*',\ , and check the var names, e.g. blue3_line
-    leg = Legend(ax,labels=[babel[0]],loc=(-.17,1.03), handles=[blue_line],\
-                 handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-    ax.add_artist(leg)
+#    from matplotlib.legend import Legend
+#    import matplotlib.lines as mlines  
+#    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
+#                      markersize=0)          #color='blue', marker='*',\ , and check the var names, e.g. blue3_line
+#    leg = Legend(ax,labels=[babel[0]],loc=(-.17,1.03), handles=[blue_line],\
+#                 handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#    ax.add_artist(leg)
 #    plt.axis((0,500,0,0.04)) #check this if needed..
+    
     #        https://stackoverflow.com/questions/22016965/removing-frame-while-keeping-axes-in-pyplot-subplots/44216223
     #        https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     plt.tight_layout()
     plt.margins(0.05, 0.05) #These are important
     my_dpi=1200  
-    plt.savefig('Histogram of reviews_tikkaN31120'+journal+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi))
-#    labels=['A)','B)']
+    plt.savefig('Histogram of reviews_tikkaN91220'+journal+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi),bbox_inches='tight')
+    plt.close()
+
     fig, ax = plt.subplots()
-    ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,alpha=1,label=title)
-    ax.legend(loc=(0.26,0.99),frameon=False,fontsize=fonta[3]) #Check the location: 0 or (0.27,0.97)/'upper right
+    ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,alpha=1,color=color)#,label=title)
+    title='Number of reviewers utilized at '+journal
+    plt.suptitle(title, y=1.05,x=0.6, \
+             fontsize=20, fontfamily='Times New Roman')#, y=1.02)
+#    ax.legend(loc=(0.26,0.99),frameon=False,fontsize=fonta[3]) #Check the location: 0 or (0.27,0.97)/'upper right
     #%Bar graph of the number of reviews per article to reach the first decision and other criteria
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.xlabel("Reviews for First Decision", size=fonta[1])
-    plt.ylabel("Articles Reviewed", size=fonta[1])
-    y_ticks=np.arange(0, 1400, 100)#you may need to adjust this
+    plt.xlabel("Reviews for first decision", size=fonta[1])
+    plt.ylabel("Articles reviewed", size=fonta[1])
+    y_ticks=np.arange(0, 1400, 10)#you may need to adjust this
     plt.yticks(y_ticks,size=fonta[1])
     x_ticks=np.arange(1, np.max(x[0])+1, 1)
     plt.xticks(x_ticks, size=fonta[1])
 #    labels=labels #note the double brackets, it works like that..
-    blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
+#    blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
     #        https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
     #The location of this 'A)' legend needs to be fixed:
-    leg = Legend(ax,labels=[babel[1]],loc=(-.17,1.01), handles=[blue_line],\
-             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-    ax.add_artist(leg)
+#    leg = Legend(ax,labels=[babel[1]],loc=(-.17,1.01), handles=[blue_line],\
+#             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#    ax.add_artist(leg)
     plt.tight_layout()
     plt.margins(0.1, 0.1) #These are important
-    plt.savefig('Reviews_tikkaN31120'+journal+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi))
-    #%%
+    plt.savefig('Reviews_tikkaN91220'+journal+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi),bbox_inches='tight')
+    plt.close()
+    #%
+    
 from docx import Document
 from docx.shared import Inches
 from docx.shared import Pt
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()
 #%
-each_jour(tot_res2,journal='BMC, BMJ and PLOS',babel=['',''],name=' in 2003-2020',count=500)
-#%
-#    each_jour(tot_res2,journal='BMJ',labels='B)',name=' in 2015-2020')
-#    each_jour(tot_res2,journal='PLOS Medicine',labels='C)',name=' in 2019-2020')
-r.add_picture('C:\python\\Reviews_tikkaN31120BMC, BMJ and PLOS.jpg', width = Inches(4)) 
-#    r.add_picture('C:\python\\Reviews_tikkaN16920BMC, BMJ and PLOS.jpg', width = Inches(3))  
-#    r.add_picture('C:\python\\Histogram of reviews_tikkaN8920PLOS Medicine.jpg', width = Inches(2))  
-document.save("C:\\python\\resultYota.docx") 
+each_jour(tot_res2,journal='PLOS Medicine',count=500,color='black') #of course change per journal
+r.add_picture('C:\python\\Histogram of reviews_tikkaN91220PLOS Medicine.jpg', width = Inches(2)) #check..
+r.add_picture('C:\python\\Reviews_tikkaN91220PLOS Medicine.jpg', width = Inches(2))  #check..
+document.save("C:\\python\\resultYotan7.docx") #change also this..
     #%%Here is the amount of reviews above e.g. 7
     amount_reviews2=pd.DataFrame(rng)
     ar2=amount_reviews2>400 #check this value
     col_one_list =  ar2[0].to_list() # or.. list(ar2['Review Word Count'])
     true_count = sum(col_one_list)
     print(true_count)
+#%%Two variables needed for the next function (basic_hist1)
+titleX=[[" in 2003-2004"],[" in 2005-2006"],[" in 2007-2008"],[" in 2009-2010"],\
+        [" in 2011"],[" in 2012"],[" in 2013"],[" in 2014"],[" in 2015"],[" in 2016"],
+        [" in 2017"],[" in 2018"],[" in 2019"],[" in 2020"]] 
+timeX=[[2003,2004],[2005,2006],[2007,2008],[2009,2010],\
+       [2011],[2012],[2013],[2014],\
+       [2015],[2016],[2017],[2018],
+       [2019],[2020]] 
 #%%This is for figure S4/5 in manuscript (ver. 3.11.2020)
 #This is a function for yearly based histograms for all journals without restrictions, visually 800
-def basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
-               time=timeX[0], ABC=['A)'], fonta=fonta):
+    #To be revised for 9.12.20 version (Tikka)
+def basic_hist1(tot_res2, magazine=['BMC'], tt=titleX[0][0],\
+               time=timeX[0], fonta=fonta,color='g'):
+        #%
     #%ok is time or count, #These four lines are for testing if issues:
     #% Now just get As Bs and journal names and years to lists and apply... (18.8.20)
-#    magazine=['BMC, BMJ and PLOS']
-#    time=[2016]
+#    magazine=['BMC'] #the name, e.g. BMC, BMJ, PLOS, or all (i.e. BMC, BMJ and PLOS) etc.
+#    time=[2003,2004]
 #    ABC=['A)']
 #    title="Word Counts in Reviews during 2009-2010"
 #    ok=tot_res2['Review Word Count']<500 #this can be what you want
 #    ii=titleX[0][0]
+#    tt=titleX[0][0]
 #    time=timeX[0]
-    title=magazine[0]+tt
+#    title=magazine[0]+tt
     AUX=tot_res2.set_index('year')
     ok_bmc=AUX['Journal Name']=='BMC Medicine'
     ok_bmj=AUX['Journal Name']=='BMJ'
@@ -894,6 +1134,7 @@ def basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
         AUX2.append(rng.loc[time[i]])
     AUX3=pd.concat(AUX2)
     fig, ax = plt.subplots()
+    fonta=['Times New Roman', 20,'light',20] 
     plt.rcParams["font.family"] = fonta[0]
     plt.rcParams["font.size"] = fonta[1]
     plt.rcParams["font.weight"] = fonta[2]
@@ -903,9 +1144,12 @@ def basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
 #https://stackoverflow.com/questions/43814540/how-to-change-the-font-of-the-legend
 #https://riptutorial.com/matplotlib/example/32429/multiple-legends-on-the-same-axes
 # https://matplotlib.org/3.1.0/api/_as_gen/matplotlib.pyplot.legend.html
-    plt.hist(AUX3, bins=40, weights=np.ones(len(AUX3)) / len(AUX3),range=[0, 800],\
-             alpha=1, label=title)#,\
+    plt.hist(AUX3, bins=40, weights=np.ones(len(AUX3)) / len(AUX3),range=[0, 1200],\
+             alpha=1,color=color)#, label=title)#,\
     plt.tight_layout()
+    title='Number of words used at \n'+magazine[0]+tt
+    plt.suptitle(title, y=1.05,x=0.6, \
+             fontsize=20, fontfamily='Times New Roman')#, y=1.02)
 # https://matplotlib.org/tutorials/intermediate/tight_layout_guide.html
 #https://stackoverflow.com/questions/3899980/how-to-change-the-font-size-on-a-matplotlib-plot
 #        https://matplotlib.org/tutorials/introductory/sample_plots.html#sphx-glr-tutorials-introductory-sample-plots-py
@@ -916,26 +1160,26 @@ def basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
 #        https://www.earthdatascience.org/courses/scientists-guide-to-plotting-data-in-python/plot-with-matplotlib/introduction-to-matplotlib-plots/customize-plot-colors-labels-matplotlib/
     plt.gca().yaxis.set_major_formatter(PercentFormatter(1, decimals=1))
 #    https://matplotlib.org/3.3.1/api/ticker_api.html
-    plt.xlabel("Number of Words",size=fonta[1])
-    plt.ylabel("Review Prevalence (%) ",size=fonta[1])    
+    plt.xlabel("Number of words",size=fonta[1])
+    plt.ylabel("Proportion of reviews (%)", size=18, y=0.435)    
     #Legend with blue indicator:
 #   https://matplotlib.org/tutorials/intermediate/legend_guide.html
-    ax.legend(loc=(0.02,0.99),frameon=False,fontsize=fonta[3]) #Check the location if needed: (0.35,0.97)/0
+#    ax.legend(loc=(0.02,0.99),frameon=False,fontsize=fonta[3]) #Check the location if needed: (0.35,0.97)/0
 #   https://stackoverflow.com/questions/25540259/remove-or-adapt-border-of-frame-of-legend-using-matplotlib
 #   https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.legend.html
-    from matplotlib.legend import Legend
-    import matplotlib.lines as mlines        
-    #Legend/label (A,B, etc.) for the figure:
-    #https://jakevdp.github.io/PythonDataScienceHandbook/04.06-customizing-legends.html
-    #https://matplotlib.org/tutorials/intermediate/legend_guide.html
-    labels=[ABC[0]] #this works, or [ABC]
-    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
-                      markersize=0)          #color='blue', marker='*',\
-    #https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
-    #The location of this 'A)' legend needs to be fixed:
-    leg = Legend(ax,labels=labels,loc=(-.17,1.01), handles=[blue_line],\
-                 handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[3])
-    ax.add_artist(leg)
+#    from matplotlib.legend import Legend
+#    import matplotlib.lines as mlines        
+#    #Legend/label (A,B, etc.) for the figure:
+#    #https://jakevdp.github.io/PythonDataScienceHandbook/04.06-customizing-legends.html
+#    #https://matplotlib.org/tutorials/intermediate/legend_guide.html
+#    labels=[ABC[0]] #this works, or [ABC]
+#    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
+#                      markersize=0)          #color='blue', marker='*',\
+#    #https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
+#    #The location of this 'A)' legend needs to be fixed:
+#    leg = Legend(ax,labels=labels,loc=(-.17,1.01), handles=[blue_line],\
+#                 handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[3])
+#    ax.add_artist(leg)
     #https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html   
     amount_reviews2a=[]            
     amount_reviews2a=pd.DataFrame(AUX3)
@@ -944,10 +1188,14 @@ def basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
     plt.tight_layout()
     #plt.axis((0,800,0,0.04)) #check this if needed..
     my_dpi=1200   
-    plt.savefig('C:\python\images2a\Review Prevalence '+magazine[0]+ii+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi))
+    plt.savefig('C:\python\imgs\Proportion of reviews '+magazine[0]+tt+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi),bbox_inches='tight')
+#    plt.close()
+    #%
     return len(amount_reviews2a), len(ar2a)
-basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
-               time=timeX[0], ABC=['A)'], fonta=fonta)
+#%%
+basic_hist1(tot_res2, magazine=['BMC, BMJ and PLOS'], tt=titleX[8][0],\
+               time=timeX[8], fonta=fonta,color='C0')
+    #%%
 #basic_hist1(tot_res2, magazine=['BMC'], ii=titleX[8][0],\
 #               time=timeX[8], title='BMC'+titleX[8][0], ABC=['A)'], fonta=fonta) 
 #%You may want to change the variables as well here:
@@ -959,15 +1207,20 @@ timeX=[[2003,2004],[2005,2006],[2007,2008],[2009,2010],\
 titleX=[[" in 2003-2004"],[" in 2005-2006"],[" in 2007-2008"],[" in 2009-2010"],\
         [" in 2011"],[" in 2012"],[" in 2013"],[" in 2014"],[" in 2015"],[" in 2016"],
         [" in 2017"],[" in 2018"],[" in 2019"],[" in 2020"],] 
-fonta=['Calibri', 20,'light',20]
-#%  This is also for figure S4/5 in manuscript (ver. 3.11.2020)
-def basic_bar1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
-               time=timeX[0],  ABC=['B)'], fonta=fonta):
+fonta=['Times New Roman', 20,'light',20]
+
+#%%  This is also for figure S4/5 in manuscript (ver. 3.11.2020)
+def basic_bar1(tot_res2, magazine=['BMC'],tt=titleX[0][0],\
+               time=timeX[0], fonta=fonta,color='g'):
+        #%
 #    magazine=['BMC'] #These four lines are for testing if issues:
-#    time=[2015]
+#    time=[2003,2004]
 #    title="Word Counts in Reviews during 2009-2010"
 #    ABC=['B)']
-#        fonta=['Calibri', 20,'light',20]
+#    tt=titleX[0][0]
+#    color='g'
+#    time=timeX[0]
+    fonta=['Times New Roman', 20,'light',20]
     #%https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     title=magazine[0]+tt
     AUX=tot_res2.set_index('year')
@@ -999,7 +1252,7 @@ def basic_bar1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
     aza3=pd.DataFrame(aza3)
     baza3=list(aza3[0])
     x=np.array(np.unique(baza3, return_counts=True))
-    fig, ax = plt.subplots() #fonta=['Calibri', 16,'light',14]
+    fig, ax = plt.subplots() #fonta=['Times New Roman', 16,'light',14]
 #labels=[ABC[0]] #this works!
 ##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
 #    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
@@ -1012,29 +1265,42 @@ def basic_bar1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
     plt.rcParams["font.weight"] = fonta[2]
     plt.rcParams["axes.labelweight"] = fonta[2]
 #    plt.hist(a, bins=16,range=[b,c],label=title,width=0.5)  # arguments are passed to np.histogram
-    ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,label=title)
-    plt.xlabel("Reviews for First Decision",size=fonta[1])
-    plt.ylabel("Articles Reviewed", size=fonta[1])
+    ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,color=color)#,label=title)
+    title='Reviewers utilized at\n'+magazine[0]+tt
+    plt.suptitle(title, y=1.05,x=0.6, \
+             fontsize=20, fontfamily='Times New Roman')#, y=1.02)
+    
+    plt.xlabel("Reviews for first decision",size=fonta[1])
+    plt.ylabel("Articles reviewed", size=fonta[1],y=0.435)
     c=np.max(aza3[0])
     #%
-    plt.yticks(size=fonta[3])
+    if np.max(x[1])<40:
+        y_ticks=np.arange(0, np.max(x[1])+4, 5)
+    if np.max(x[1])>39.999999 and np.max(x[1])<80:
+        y_ticks=np.arange(0, np.max(x[1])+5, 10)
+    if np.max(x[1])>79.999999 and np.max(x[1])<150:
+        y_ticks=np.arange(0, np.max(x[1])+8, 20)
+    if np.max(x[1])>149.999999:
+        y_ticks=np.arange(0, np.max(x[1])+20, 50)
+        
+    plt.yticks(y_ticks,size=fonta[3])
     plt.xticks(np.arange(1, c+2, 1),size=fonta[3]) 
     plt.tight_layout()
     ax.spines['right'].set_visible(False) #You do not want the box!
     ax.spines['top'].set_visible(False) #as above.. no box
 # https://stackoverflow.com/questions/3899980/how-to-change-the-font-size-on-a-matplotlib-plot  
     #Legend with blue indicator:
-    ax.legend(loc=(0.02,0.99),frameon=False,fontsize=fonta[3]) #check x location: (0.55,0.97)/0
-    from matplotlib.legend import Legend
-    import matplotlib.lines as mlines   
-    #Legend/label (A,B, etc.) for the figure:
-    labels=[ABC[0]] #this works! or [ABC[0]] individually
-#    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
-    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
-                      markersize=0)          #color='blue', marker='*',\
-    leg = Legend(ax,labels=labels,loc=(-.17,1.01), handles=[blue_line],\
-                 handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[3])
-    ax.add_artist(leg)    
+#    ax.legend(loc=(0.02,0.99),frameon=False,fontsize=fonta[3]) #check x location: (0.55,0.97)/0
+#    from matplotlib.legend import Legend
+#    import matplotlib.lines as mlines   
+#    #Legend/label (A,B, etc.) for the figure:
+#    labels=[ABC[0]] #this works! or [ABC[0]] individually
+##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
+#    blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
+#                      markersize=0)          #color='blue', marker='*',\
+#    leg = Legend(ax,labels=labels,loc=(-.17,1.01), handles=[blue_line],\
+#                 handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[3])
+#    ax.add_artist(leg)    
     plt.tight_layout()
     plt.margins(0.05,0.05)
     amount_reviews2=[]
@@ -1042,14 +1308,17 @@ def basic_bar1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
     ar2=amount_reviews2[amount_reviews2>c]
     ar2=ar2.dropna()
     my_dpi=1200   
-    plt.savefig('C:\python\images2a\Articles Reviewed '+magazine[0]+ii+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi))
-        #%
+    plt.savefig('C:\python\imgs\Articles reviewed '+magazine[0]+tt+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi),bbox_inches='tight')
+    plt.close()    
+    #%
+        
     return len(amount_reviews2), len(ar2),c
+#%%
 #%I need one histo and one bar plot, and then apply the below procedure:
-basic_bar1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
-               time=timeX[0],  ABC=['B)'], fonta=fonta) 
+basic_bar1(tot_res2, magazine=['BMC'],tt=titleX[5][0], time=timeX[5], fonta=fonta, color='g') 
+    #%%
 #https://stackoverflow.com/questions/1358977/how-to-make-several-plots-on-a-single-page-using-matplotlib
-#%%You may want to change the variables as well here, and do many plots at the same time 
+#%You may want to change the variables as well here, and do many plots at the same time 
 #(Figures S4/5 in m. 3.11.20, Tikka):
 #magazine=['BMC'] #this can be any other, e.g. 'BMJ', 'PLOS', or 'BMC, BMJ and PLOS' (i.e. ALL)
 #timeX=[[2003,2004],[2005,2006],[2007,2008],[2009,2010],\
@@ -1059,40 +1328,45 @@ basic_bar1(tot_res2, magazine=['BMC'], ii=titleX[0][0],tt=titleX[0][0],\
 #titleX=[[" in 2003-2004"],[" in 2005-2006"],[" in 2007-2008"],[" in 2009-2010"],\
 #        [" in 2011"],[" in 2012"],[" in 2013"],[" in 2014"],[" in 2015"],[" in 2016"],
 #        [" in 2017"],[" in 2018"],[" in 2019"],[" in 2020"],] 
-#fonta=['Calibri', 16,'light',14]
+#fonta=['Times New Roman', 16,'light',14]
 #%The procedure..
 #https://stackoverflow.com/questions/1358977/how-to-make-several-plots-on-a-single-page-using-matplotlib
 #%Better save images and then combine them..
 #https://stackoverflow.com/questions/1403674/pythonic-way-to-return-list-of-every-nth-item-in-a-larger-list
 #This is also for figure S4/5 in manuscript (ver. 3.11.2020)
-ABC_half1=[]
-ABC_half1=ABCs[0::2]
-ABC_half1.append('X2)')
-ABC_half2=[]
-ABC_half2=ABCs[1::2]
-ABC_half2.append('Z2)')
+#ABC_half1=[]
+#ABC_half1=ABCs[0::2]
+#ABC_half1.append('X2)')
+#ABC_half2=[]
+#ABC_half2=ABCs[1::2]
+#ABC_half2.append('Z2)')
 from docx import Document
 from docx.shared import Inches
 from docx.shared import Pt
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()
-#r.add_picture('C:\python\images2a\Review Prevalence ' +'BMC, BMJ and PLOS'+titleX[i][0]+'.jpg', width = Inches(3))
+#r.add_picture('C:\python\images2a\Proportion of reviews ' +'BMC, BMJ and PLOS'+titleX[i][0]+'.jpg', width = Inches(3))
 #document.save("C:\\python\\images2a\\result4.docx")
-for i in range(9,14): #check the range!
-    basic_hist1(tot_res2, magazine=['BMC, BMJ and PLOS'], ii=titleX[i][0],tt=titleX[i][0],\
-               time=timeX[i], ABC=ABC_half1[i-9], fonta=fonta) 
-    basic_bar1(tot_res2, magazine=['BMC, BMJ and PLOS'], ii=titleX[i][0],tt=titleX[i][0],\
-           time=timeX[i], ABC=ABC_half2[i-9], fonta=fonta) 
-for i in range(9,14): #check the range!
-    r.add_picture('C:\python\images2a\Review Prevalence ' +'BMC, BMJ and PLOS'+titleX[i][0]+'.jpg', width = Inches(3)) 
-    r.add_picture('C:\python\images2a\Articles Reviewed ' +'BMC, BMJ and PLOS'+titleX[i][0]+'.jpg', width = Inches(3))
-document.save("C:\\python\\images2a\\result5e.docx") # At the end of your code to generate the docx file     
+#basic_hist1(tot_res2, magazine=['BMC'], tt=titleX[0][0],\
+#               time=timeX[0], fonta=fonta,color='g')
+#basic_bar1(tot_res2, magazine=['BMC'], tt=titleX[0][0],\ 
+#           time=timeX[0], fonta=fonta, color='g') 
+
+for i in range(8,14): #check the range!
+    basic_hist1(tot_res2, magazine=['BMC, BMJ and PLOS'], tt=titleX[i][0],\
+               time=timeX[i], fonta=fonta,color='C0') #ABC=ABC_half1[i-9], 
+    basic_bar1(tot_res2, magazine=['BMC, BMJ and PLOS'], tt=titleX[i][0],\
+           time=timeX[i], fonta=fonta,color='C0') 
+for i in range(8,14): #check the range!
+    r.add_picture('C:\python\imgs\Proportion of reviews ' +'BMC, BMJ and PLOS'+titleX[i][0]+'.jpg', width = Inches(3)) 
+    r.add_picture('C:\python\imgs\Articles reviewed ' +'BMC, BMJ and PLOS'+titleX[i][0]+'.jpg', width = Inches(3))
+document.save("C:\\python\\imgs\\resultsjei3.docx") # At the end of your code to generate the docx file     
 #%Total reviews per general condition e.g. median <500
 #Or Journal-wise (e.g. BMC medicine) total reviews per previous condition info below, but code in older file, e.g.:
 #amount_reviews2=pd.DataFrame(rng)
@@ -1153,7 +1427,7 @@ okl=[ok2,df]
 okll=[]
 okll=pd.concat(okl,axis=1) #this is the original..
 #https://stackoverflow.com/questions/32444138/concatenate-a-list-of-pandas-dataframes-together
-okz=okll['Review Word Count']<50  #vary this, 75, 500, float('Inf'), sum(okn)
+okz=okll['Review Word Count']<500  #vary this, 75, 500, float('Inf'), sum(okn)
 #okz=okll['Review Word Count']<500  #vary this, 75, 500, float('Inf'), sum(okn)
 oknn=okll.loc[okz]
 oknn=oknn.iloc[:,:-1]
@@ -1171,7 +1445,7 @@ totis.insert(1,'y',ya[0])
 #https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sort_values.html
 ok=totis.sort_values(by=['y'],ascending=False)
 fig, ax = plt.subplots()
-fonta=['Calibri', 20,'light',12] 
+fonta=['Times New Roman', 16,'light',16] 
 #The same with the fonts here (as above), but should you wnat to change anything, 
 #I inserted them again here:
 plt.rcParams["font.family"] = fonta[0]
@@ -1188,24 +1462,26 @@ title=magazine[0] + ' in 2003-2020'
 #magazine=['PLOS'] #this can be any other, see above
 #title= magazine[0]+ ' in 2019-2020'
 #    plt.hist(a, bins=16,range=[b,c],label=title,width=0.5)  # arguments are passed to np.histogram
-ax.bar(list(ok.iloc[:,0]), list(ok.iloc[:,1]), align='center', width=0.6, alpha=1, label=title)
-ax.legend(loc=(0.26,0.99),frameon=False,fontsize=fonta[3]) #Check the location: 0 or (0.27,0.97)/'upper right
+ax.bar(list(ok.iloc[:,0]), list(ok.iloc[:,1]), align='center', width=0.6, alpha=1)#, label=title)
+plt.suptitle('Categories in all reviews', \
+             fontsize=16, fontfamily='Times New Roman', y=0.92)
+#ax.legend(loc=(0.26,0.99),frameon=False,fontsize=fonta[3]) #Check the location: 0 or (0.27,0.97)/'upper right
 #%Bar graph of the number of reviews per article to reach the first decision and other criteria
 plt.xlabel("Category", size=fonta[1])
-plt.ylabel("Count of Matches", size=fonta[1])
-#y_ticks=np.arange(0, 1400, 100)
-#plt.yticks(y_ticks,size=fonta[1])
+plt.ylabel("Number of reviews", size=fonta[1])
+y_ticks=np.arange(0, 1400, 100)
+plt.yticks(y_ticks,size=fonta[1])
 #x_ticks=np.arange(1, np.max(x[0])+1, 1)
 plt.xticks(size=fonta[3],rotation=90)
-labels=['C)'] #this works!
+#labels=['C)'] #this works!
 ##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
-from matplotlib.legend import Legend
-import matplotlib.lines as mlines  
-blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
-                  markersize=0)          #color='blue', marker='*',\
-leg = Legend(ax,labels=labels,loc=(-.17,1.02), handles=[blue_line],\
-             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-ax.add_artist(leg)  
+#from matplotlib.legend import Legend
+#import matplotlib.lines as mlines  
+#blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
+#                  markersize=0)          #color='blue', marker='*',\
+#leg = Legend(ax,labels=labels,loc=(-.17,1.02), handles=[blue_line],\
+#             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#ax.add_artist(leg)  
 #labels=[['B)']] #note the double brackets, it works like that..
 #blue_line = mlines.Line2D([], [], linewidth=0, marker='',markersize=0)#color='blue', marker='*',\
 ##        https://matplotlib.org/3.3.0/api/_as_gen/matplotlib.lines.Line2D.html
@@ -1224,7 +1500,7 @@ from docx.shared import Pt
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
@@ -1232,7 +1508,7 @@ r = p.add_run()
 my_dpi=1600   
 plt.savefig("Histogram of categories_tikka28920.jpg",dpi=my_dpi,bbox_inches='tight')
 r.add_picture('Histogram of categories_tikka28920.jpg', width = Inches(3))
-document.save("C:\\python\\resultnax.docx")
+document.save("C:\\python\\resultnam.docx")
 #%dois=pd.read_csv('dois.csv', index_col=None, header=0)
 #doihere=MDM.iloc[:,2] #add doi.org/ check the name and match to tot_res
 #dh2=[]
@@ -1269,7 +1545,7 @@ tot_res2=pd.read_csv('all_journals_tikka21720_ok.csv', index_col=None, header=0)
 tot_res2.rename(columns={'Date of Publication':'Date'}, inplace=True)
 tot_res2['Date'] =pd.to_datetime(tot_res2.Date)
 tot_res2['year'] = pd.DatetimeIndex(tot_res2['Date']).year  
-fonta=['Calibri', 16,'light',14] #To make these fonts show in graph, you need to enter twice..
+fonta=['Times New Roman', 16,'light',16] #To make these fonts show in graph, you need to enter twice..
 MDK=pd.read_csv('MDK.csv', index_col=None, header=0, sep='\t')    #i.e. mesh disease key, needed?
 MDM=pd.read_csv('MDM.csv',index_col=None, header=0, sep='\t') #mesh disease matches
 #Miks MDM ja MDMsep3 ovat eripituiset?
@@ -1322,7 +1598,7 @@ okl=[ok2,df]
 okll=[]
 okll=pd.concat(okl,axis=1) #this is the original..
 #https://stackoverflow.com/questions/32444138/concatenate-a-list-of-pandas-dataframes-together
-okz=okll['Review Word Count']<float('Inf')  #vary this, 75, 500, float('Inf'), sum(okn)
+okz=okll['Review Word Count']<50  #vary this, 75, 500, float('Inf'), sum(okn)
 oknn=okll.loc[okz]
 oknn=oknn.iloc[:,:-1]
 teka=oknn.iloc[0,15:].index
@@ -1410,18 +1686,20 @@ notia2=notia.sort_values(by=[0],ascending=False)
 xa=notia2.index
 y=notia2.iloc[:,0]
 #check this..
-#lolims=y-notia2.iloc[:,1]
-lolims=[0]*23 #for standard
-#uplims=notia2.iloc[:,2]-y
-uplims=[0]*23
+lolims=y-notia2.iloc[:,1]
+#lolims=[0]*23 #for standard
+uplims=notia2.iloc[:,2]-y
+#uplims=[0]*23
 asymmetric_error = [lolims, uplims]
 #%
 fig, ax = plt.subplots()
-#y_ticks=np.arange(0, 30, 5)
+
 plt.yticks(size=16)
 #x_ticks=np.arange(1, np.max(x[0])+1, 1)
+y_ticks=np.arange(0, 65, 10)
+plt.yticks(y_ticks,size=16)
 plt.xticks(size=16,rotation=90)
-plt.ylabel("Prevalence of Reviews (%)", size=fonta[1])
+plt.ylabel("Proportion of reviews (%)", size=fonta[1])
 plt.xlabel("Category", size=fonta[1])
 #plt.plot(xa,y, color='blue')
 z=xa
@@ -1433,8 +1711,8 @@ za=list(tuple(range(0,len(xa))))
 lst = list(range(94))
 yax2=[]
 #https://stackoverflow.com/questions/1403674/pythonic-way-to-return-list-of-every-nth-item-in-a-larger-list
-yax2=lst[0::4][0:23]
-yax3=lst[0::4][0:23][::-1]
+yax2=lst[0::2][0:23]
+yax3=lst[0::2][0:23][::-1]
 yan=23-len(yax2)
 tax=np.max(yax2)
 for i in range(1,yan+1):
@@ -1447,9 +1725,11 @@ for i in range(len(notia2)):
 n=tnd  #notia2.iloc[:,3]
 #https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/annotation_demo.html
 for i, txt in enumerate(n):
-    ax.annotate(txt, (z[i], y[i]), size=8.5, xytext=(23, yax3[i])) #xytext=(za[i], yax2[i])
+    ax.annotate(txt, (z[i], y[i]), size=9.0, xytext=(23, yax3[i]),fontfamily='Times New Roman') #xytext=(za[i], yax2[i])
 #    ax.annotate(n[i], (z[i], y[i]), xytext=(z[i]+0.05, y[i]+0.3), arrowprops=dict(facecolor='red', shrink=0.05))
-plt.errorbar(xa,y, yerr=asymmetric_error,color='blue',fmt='o',capsize=5) 
+plt.errorbar(xa,y, yerr=asymmetric_error,color='C0',fmt='o',capsize=5) 
+plt.suptitle('Proportion in categories', \
+             fontsize=16, fontfamily='Times New Roman', y=0.92)
 #https://stackoverflow.com/questions/61203720/remove-white-background-from-the-matplotlib-graph
 #plt.style.use('classic')
 #plt.grid(b=None)
@@ -1467,25 +1747,25 @@ ax.set_facecolor('white')
 #plt.tight_layout()
 plt.margins(0.1, 0.1) #These are important
 #plt.axis('off')
-labels=['A)'] #this works!
+#labels=['A)'] #this works!
 ##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
-from matplotlib.legend import Legend
-import matplotlib.lines as mlines  
-blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
-                  markersize=0)          #color='blue', marker='*',\
-leg = Legend(ax,labels=labels,loc=(-.17,1.02), handles=[blue_line],\
-             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
-ax.add_artist(leg)  
+#from matplotlib.legend import Legend
+#import matplotlib.lines as mlines  
+#blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
+#                  markersize=0)          #color='blue', marker='*',\
+#leg = Legend(ax,labels=labels,loc=(-.17,1.02), handles=[blue_line],\
+#             handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
+#ax.add_artist(leg)  
 labels=["Categories' \nQuantities"] #this works!
 ##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
 from matplotlib.legend import Legend
 import matplotlib.lines as mlines  
 blue_line = mlines.Line2D([], [], linewidth=0, marker='',\
                   markersize=0)          #color='blue', marker='*',\
-leg = Legend(ax,labels=labels,loc=(0.94,0.89), handles=[blue_line],\
+leg = Legend(ax,labels=labels,loc=(0.94,0.73), handles=[blue_line],\
              handlelength=0, labelspacing=0,frameon=False,fontsize=fonta[1])
 ax.add_artist(leg)
-plt.axis((-1,23,-3,103)) #check this if needed..
+plt.axis((-1,23,-3,65)) #check this if needed..
 #plt.savefig("Categories_all_tikka31020.jpg",dpi=my_dpi,bbox_inches='tight')
 from docx import Document
 from docx.shared import Inches
@@ -1493,7 +1773,7 @@ from docx.shared import Pt
 document= Document()
 document.add_heading("My results!")
 font = document.styles['Normal'].font
-font.name = 'Calibri'
+font.name = 'Times New Roman'
 font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
@@ -1502,7 +1782,123 @@ my_dpi=1600
 plt.savefig("Categories_200w_tikka281020.jpg",dpi=my_dpi,bbox_inches='tight')
 r.add_picture('Categories_200w_tikka281020.jpg', width = Inches(3))
 document.save("C:\\python\\resultnaMa.docx")
-
+#%%The below is for FigS14 in manuscript:
+tot_res2=pd.read_csv('all_journals_tikka21720_ok.csv', index_col=None, header=0)
+tot_res2.rename(columns={'Date of Publication':'Date'}, inplace=True)
+tot_res2['Date'] =pd.to_datetime(tot_res2.Date)
+tot_res2['year'] = pd.DatetimeIndex(tot_res2['Date']).year 
+ok=tot_res2['Review Word Count']<500 #this can be what you want
+ok_bmc=tot_res2['Journal Name']=='BMC Medicine'
+ok_bmj=tot_res2['Journal Name']=='BMJ'
+ok_plos=tot_res2['Journal Name']=='PLOS Medicine'
+BMC=tot_res2.loc[ok_bmc & ok]
+BMJ=tot_res2.loc[ok_bmj & ok]
+PLOS=tot_res2.loc[ok_plos & ok]
+Tot=tot_res2.loc[ok] #%This works for all..
+Tota=PLOS.set_index(['Title of Article']).loc[np.unique(PLOS['Title of Article'])]
+Tota=Tota['Review Word Count']
+aza3=pd.DataFrame(Tota).pivot_table(index=['Title of Article'], aggfunc='size') #this is for all
+#aza3=PLOS3.pivot_table(index=['Title of Article'], aggfunc='size') #this is for individuals
+aza3=pd.DataFrame(aza3)
+baza3=list(aza3[0])
+x=np.array(np.unique(baza3, return_counts=True))
+df=[]
+df = pd.DataFrame({
+    'Reviews': x[0],
+    'Articles reviewed': x[1]})
+indexia=np.unique(Tota.index)
+lauxa=[]
+for x in range(len(indexia)):
+    try:
+        if len(Tota[indexia[x]])>1:
+            lauxa.append(pd.DataFrame(Tota[indexia[x]]))
+    except:
+        if len([Tota[indexia[x]]])==1:
+#       https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html
+#       https://stackoverflow.com/questions/18022845/pandas-index-column-title-or-name
+            at=pd.DataFrame([Tota[indexia[x]]])
+            donk=indexia[x]
+            at=at.rename({0: 'Review Word Count'}, axis='columns') #jei!
+            at=at.rename({0: donk}, axis='index') #jei!!
+            lauxa.append(at) #got it!
+tauxa=[]
+for i in range(len(lauxa)):
+    try:
+        lauxa[i]=pd.DataFrame(lauxa[i])
+        lauxa[i] = lauxa[i].assign(reviews = [len(lauxa[i])]*len(lauxa[i])) 
+        tauxa.append(lauxa[i])
+    except:
+        lauxa[i]=pd.DataFrame([lauxa[i]])
+        lauxa[i] = lauxa[i].assign(reviews = [len(lauxa[i])]*len(lauxa[i]))
+        lauxa[i].columns = ['Review Word Count', 'reviews']
+        tri=[]
+        tri= pd.DataFrame(lauxa[i].rename(columns={0: 'Review Word Count'}).loc[0])
+        tauxa.append(tri)
+for i in range(len(tauxa)):
+    if len(tauxa[i])==1:
+        tauxa[i].columns = ['Review Word Count', 'reviews']
+lx=pd.concat(tauxa) #now it is ok!!
+lx22=[]
+maxi=np.max(lx.loc[:,'reviews'])
+for i in range(1,maxi+1):
+    lx22.append(np.mean(lx[lx.loc[:,'reviews']==i].iloc[:,0])) #or median
+df2=df
+df2=df2.rename(columns={'Reviews': 'Review Word Count'})
+df2['Review Word Count']=pd.DataFrame(lx22) # or more preferably just lx22
+import seaborn as sns
+fonta=['Times New Roman', 20,'light',14] #To make these fonts show in graph, you need to enter them twice..
+#fig, ax = plt.subplots()
+plt.rcParams["font.family"] = fonta[0]
+plt.rcParams["font.size"] = fonta[1]
+plt.rcParams["font.weight"] = fonta[2]
+plt.rcParams["axes.labelweight"] = fonta[2] 
+#By Change I figured it out that x an ylims can (and are better) to go inside this function:
+##    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
+g=sns.jointplot(df['Reviews'],df['Articles reviewed'],\
+              kind='kde',xlim={0, 7}, ylim={0, 31}) #with five one can change the orientation..
+#Got it:
+#https://stackoverflow.com/questions/42767489/add-legend-to-seaborn-point-plot
+#https://stackoverflow.com/questions/24277770/bar-graph-with-legend-without-colors
+#https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.legend.html
+plt.legend(labels=['I)'],loc=(-7.5,1),frameon = False,handlelength=0)
+#This is how you change forcefully the names of x an y axis in plot..
+#you may need to change the xlim values 'paittain' or give value ending with 5, if problems
+import matplotlib.ticker as ticker
+g.ax_joint.xaxis.set_major_locator(ticker.MultipleLocator(1)) #jei this worked! :
+g.ax_joint.yaxis.set_major_locator(ticker.MultipleLocator(10)) #jei this worked! :
+#https://stackoverflow.com/questions/34209140/setting-the-axes-tick-values-of-a-seaborn-jointplot
+#https://stackoverflow.com/questions/33227473/how-to-set-the-range-of-y-axis-for-a-seaborn-boxplot/33227833
+#plt.yticks(fig.get_yticks(), fig.get_yticks() * 100)   
+#https://seaborn.pydata.org/generated/seaborn.kdeplot.html
+#sns.axes_style(axis.set_ticks([]))
+#sns.set_style("ticks", {"xtick.major.size": 1, "ytick.major.size": 100})   
+#All right, toimii B:lle, riittönee tässä vaiheessa, A:lle tarvitsisin ne binit..
+#%% The below sns tests work, but not needed
+#It seems that y is missing from below... wait, for Fig. 1A (and 2) I just need rng, :)
+#for col in 'x':
+#    sns.kdeplot(list(lx.loc[lx['reviews']==2,'Review Word Count']), shade=True) 
+#    #Hmm.. does not look the one above.., what are the axes?
+#sns.distplot(list(lx.loc[lx['reviews']<7,'Review Word Count']),bins=50)
+#plt.gca().yaxis.set_major_formatter(PercentFormatter(0.1, decimals=1))
+##%
+##plt.yticks(np.arange(0, 0.01, step=0.001))
+##yticks(np.arange(0, 1, step=0.2))
+#plt.ylim(0, 0.0032)
+#plt.xlim(0, 500)
+#%%
+#sns.kdeplot(lx['Review Word Count']);
+#%%
+#geyser = sns.load_dataset("geyser")
+#geyser=geyser.drop("kind", axis=1)
+#sns.kdeplot(data=geyser,hue="kind", fill=True)
+#%%
+#sns.heatmap(df2, annot=True)
+#%%For one review:
+#df=[]
+#df = pd.DataFrame({
+#    'Words': list(lx.loc[lx['reviews']==2,'Review Word Count']),
+#    'Articles reviewed': list(lx.loc[lx['reviews']==2,'reviews'])})
+#fig=sns.jointplot(df['Words'],df['Articles reviewed'],kind='kde')
 #%% Not used code for manuscript, but possibly good for other purposes (4.11.20, Tikka):
 
 #To get CIs in python is not straigthfoward: 
@@ -1622,7 +2018,7 @@ def preval_short(tot_res2, count=200):
     color=['b','r','black']
     label=['BMC medicine','BMJ','PLOS Medicine']
     fmt=['o', 'D', 'x']
-    fonta=['Calibri', 16,'light',14] #you need to enter twice to see the results..
+    fonta=['Times New Roman', 16,'light',14] #you need to enter twice to see the results..
     for i in range(len(arg)):
         x=list(arg[i].index)
         y=list(tin[i].iloc[:][0])
@@ -1869,6 +2265,7 @@ for i in range(len(MDMsep3)):
         if MDMsep3[i]==blok[j]:
             matsi.append(i) #list(ok2.index)    
             satsi.append(MDMsep3[i])
+            
 MDM2=MDM.iloc[np.unique(matsi),:]              
 dip=list(MDM2.index)
 indexa=list(tuple(range(0,1428)))
@@ -1892,7 +2289,6 @@ tak=testnm.iloc[:,:-1]
 #%https://stackoverflow.com/questions/16327055/how-to-add-an-empty-column-to-a-dataframe
 #for i in range(15,40):
 #    ok2[i] = "" 
-#%
 ok2=ok2.reset_index()
 testnm=testnm.reset_index()
 pist=[]
@@ -2014,6 +2410,7 @@ def rev_counta(cat=13):
             aps.append(float(mean_confidence_interval(revcat, confidence=0.95)[i]))
     #%
     return aps, txns.ix[:,cat].name 
+
 rev_cata=[]
 rc_nam=[]    
 for i in range(0,24):
@@ -2024,9 +2421,7 @@ japa.index=rc_nam
 #https://www.geeksforgeeks.org/python-change-column-names-and-row-indexes-in-pandas-dataframe/
 japa.columns =['Mean', 'CI_neg', 'CI_pos']
 japa.to_csv('cat_rev_meansmax_tikka291020.csv',index=True) 
-
-
-#%% Printing the small review files:
+#%% Printing the small review files: This will produce a pop-up window with multiple windows so careful with enter
 #Not sure if the below cut is needed(?)
 small=tot_res2[tot_res2.loc[:,'Review Word Count']<50] 
 #smallok=np.sort(small.loc[:,'Review Word Count']) 
@@ -2050,3 +2445,4 @@ import webbrowser
 for i in range(len(f)):
     url = f.iloc[i][0]
     webbrowser.open_new_tab(url) 
+    
