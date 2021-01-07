@@ -2,11 +2,9 @@
 """
 Created on Mon Jul 20 10:46:49 2020
 
-Major update:11.12.20
-
 @author: pauli
 """
-#Tikka et al 2020 Peer Review Word Count Histograms etc. codes (4.11.20, Tikka)
+#Tikka et al 2020 Peer Review Word Count Histograms etc. codes (07.01.21, Tikka)
 #%% First import all packages:
 import requests
 import urllib.request
@@ -169,7 +167,8 @@ magazine=['BMC, BMJ and PLOS'] #this can be any other, e.g. 'BMJ', 'PLOS', or 'B
 ax.bar(list(x[0]), list(x[1]),align='center', width=0.6,alpha=1)#,label=title)
 ax.legend(loc=(0.26,0.99),frameon=False,fontsize=fonta[3]) #Check the location: 0 or (0.27,0.97)/'upper right
 #%Bar graph of the number of reviews per article to reach the first decision and other criteria
-title='Number of reviewers utilized\n to evaluate the accepted articles'
+title='Number of reviews in articles'
+#Number of reviewers utilized\n to evaluate the accepted articles
 plt.suptitle(title, y=1.02,x=0.54, \
              fontsize=16, fontfamily='Times New Roman')#, y=1.02)
 plt.xlabel("Reviews for first decision", size=fonta[1])
@@ -193,7 +192,7 @@ plt.margins(0.1, 0.1) #These are important
 my_dpi=3600   
 plt.savefig("Histogram of all reviews_tikka181120.jpg",dpi=my_dpi,bbox_inches='tight')
 r.add_picture('C:\python\Histogram of all reviews_tikka181120.jpg', width = Inches(3))
-document.save("C:\\python\\resultnap.docx")
+document.save("C:\\python\\resultnaap.docx")
 #figsize=(800/my_dpi, 800/my_dpi)
 plt.show()
 #% Testing sns for the visualization:
@@ -491,7 +490,7 @@ def stack_plt(tot_res2, journal='BMC Medicine', fontX=20):
     df = pd.DataFrame(raw_data)#, index=ind, \
 #   From raw value to percentage
     totals=[]
-    totals = [i+j+k+ii+jj+kk for i,j,k,ii,jj,kk in zip(df['greenBars'],df['orangeBars'],df['blueBars'],df['a'],df['b'],df['c'])]
+    totals = [i+j+k+ii+jj+kk for i,j,k,ii,jj,kk in zip(df['greenBars'],df['orangeBars'],df['blueBars'],df['a'],df['b'],df['c'])] #add all kks if more
     greenBars = [i / j * 100 for i,j in zip(df['greenBars'], totals)]
     orangeBars = [i / j * 100 for i,j in zip(df['orangeBars'], totals)]
     blueBars = [i / j * 100 for i,j in zip(df['blueBars'], totals)]
@@ -527,7 +526,7 @@ def stack_plt(tot_res2, journal='BMC Medicine', fontX=20):
     plt.yticks(y_ticks,size=20)
     #https://stackoverflow.com/questions/20337664/cleanest-way-to-hide-every-nth-tick-label-in-matplotlib-colorbar
     plt.tight_layout()
-    title='Annual short reviews ('+journal+')'
+    title=journal
     plt.suptitle(title, y=1,x=0.54, \
              fontsize=20, fontfamily='Times New Roman')#, y=1.02)
     plt.xlabel("Year", size=20)
@@ -588,7 +587,7 @@ stack_plt(tot_res2, journal='PLOS Medicine',fontX=20)
 r.add_picture('C:\python\\Stack plot_tikka101220BMC Medicine.jpg', width = Inches(1.75))   
 r.add_picture('C:\python\\Stack plot_tikka101220BMJ.jpg', width = Inches(1.75))  
 r.add_picture('C:\python\\Stack plot_tikka101220PLOS Medicine.jpg', width = Inches(2.5))  
-document.save("C:\\python\\resultZane.docx")
+document.save("C:\\python\\resultoo.docx")
 #%% This is for figures 4 and S6-9 in manuscript (ver. 3.11.2020)
 #This is going to change somewhat (ver. 2.12.20)
 #To get CIs in python is not straigthfoward:
@@ -733,7 +732,7 @@ preval_pers(tot_res2, count=100,num=3,ABC=['C)'])
 r.add_picture('C:\python\images2a\Proportion of reviews(%)_tikka41220_1.jpg', width = Inches(2))
 r.add_picture('C:\python\images2a\Proportion of reviews(%)_tikka41220_2.jpg', width = Inches(2))
 r.add_picture('C:\python\images2a\Proportion of reviews(%)_tikka41220_3.jpg', width = Inches(2))
-document.save("C:\\python\\images2a\\resultnopaas.docx")
+document.save("C:\\python\\images2a\\resultnopaasam.docx")
 #https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
 #%% Fig 4 redo, starting 4.12.20, tikka, comments of changes in the code (should be about ok 8.12.20):
 def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #no panel letters..
@@ -785,6 +784,7 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
     b4=sum(jota[0]>=0.2)  
     tot20=np.round(b4/a1*100,2)
     y=[tot,tot50,tot33,tot20]
+    
     from math import sqrt
     def wilson(p, n, z = 1.96):
         denominator = 1 + z**2/n
@@ -797,8 +797,8 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
     for i in range(0,4):
         tit.append([y[i]-np.round(100*(wilson(y[i]/100, a1)[0]),2),\
                     np.round(100*(wilson(y[i]/100, a1)[1]),2)-y[i]])
-    x=['100%', '50% ≤', '33% ≤','20% ≤']
-    fonta=['Times New Roman', 16,'light',16]
+    x=['100%', '≥50%', '≥33%','≥20%']
+    fonta=['Times New Roman', 20,'light',20]
 #    https://matplotlib.org/3.1.0/gallery/color/named_colors.html
 #    https://stackoverflow.com/questions/47074423/how-to-get-default-blue-colour-of-matplotlib-pyplot-scatter/47074742
 #    plt.scatter(x,y,color ='C0',linewidth=2)#, label=label[i])
@@ -806,9 +806,13 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
     uplims=np.array(pd.DataFrame(tit)[1])
     asymmetric_error=[lolims, uplims]
     plt.errorbar(x,y,yerr=asymmetric_error, color=col,fmt='o',capsize=5)
-    title='Positive decision using short reviews\n (words<'+str(count)+') at'+' articles of '+journal
+    if journal!='all journals':
+        title=journal
+    elif journal=='all journals':
+        title='All journals'
+#    'Positive decision using short reviews\n (words<'+str(count)+') at'+' articles of '+
     plt.suptitle(title, y=1.05,x=0.5, \
-             fontsize=16, fontfamily='Times New Roman')#, y=1.02)
+             fontsize=20, fontfamily='Times New Roman')#, y=1.02)
     ax = plt.gca()
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -825,8 +829,10 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
         y_ticks=np.arange(0, np.round(np.max(y))+3, 2)
     elif np.max(y)<10 and np.max(y)>2.6:
         y_ticks=np.arange(0, np.round(np.max(y))+2, 1)
-    elif np.max(y)<2.6:
+    elif np.max(y)<2.6 and np.max(y)>1:
         y_ticks=np.arange(0, np.round(np.max(y))+1, 0.4)
+    elif np.max(y)<1:
+        y_ticks=np.arange(0, np.round(np.max(y))+1, 0.2)
         
     plt.yticks(y_ticks,size=fonta[1])
     plt.xticks(size=fonta[1], visible=True)
@@ -845,7 +851,7 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
                         Line2D([0], [0], color='red', lw=4),
                         Line2D([0], [0], color='black', lw=4)]
 
-        ax.legend(custom_lines, ['All', 'BMC', 'BMJ','PLOS'],frameon=False)
+        ax.legend(custom_lines, ['All', 'BMC', 'BMJ','PLOS'],frameon=False,fontsize=20)
     else:
         pass
        
@@ -879,7 +885,7 @@ preval_pers2(tot_res2, count=500, journal='BMJ', col='red',num=3)
 r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_3.jpg', width = Inches(3))
 preval_pers2(tot_res2, count=500, journal='PLOS Medicine', col='black',num=4)
 r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_4.jpg', width = Inches(3))
-document.save("C:\\python\\Fig4_revised\\results7.docx")
+document.save("C:\\python\\Fig4_revised\\results4aa.docx")
 #    tot=np.round(b1/a1*100,2) #this is the tot for first panel 100%..not necessarily so, i.e.:
     #out of all journal decisions that were made 
 #    (so this is our denominator – this will be equal to the number of articles (not reviewers) 
@@ -2448,3 +2454,12 @@ for i in range(len(f)):
     url = f.iloc[i][0]
     webbrowser.open_new_tab(url) 
     
+#%%Extra:
+#ih=pd.read_csv('Excel_Age Range_a.csv', index_col=None, header=0)
+#  #%%
+#a=np.median(ih)
+#b=np.percentile(ih,[25])
+#c=np.percentile(ih,[75])
+    #%%
+#q25.append(np.round(np.percentile(BMCtot[i], [25]),1)[0])
+#q75.append(np.round(np.percentile(BMCtot[i], [75]),1)[0])    
