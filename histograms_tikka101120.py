@@ -4,7 +4,7 @@ Created on Mon Jul 20 10:46:49 2020
 
 @author: pauli
 """
-#Tikka et al 2020 Peer Review Word Count Histograms etc. codes (07.01.21, Tikka)
+#Tikka et al 2020 Peer Review Word Count Histograms etc. codes (4.11.20-9.2.21, Tikka)
 #%% First import all packages:
 import requests
 import urllib.request
@@ -737,19 +737,24 @@ document.save("C:\\python\\images2a\\resultnopaasam.docx")
 #%% Fig 4 redo, starting 4.12.20, tikka, comments of changes in the code (should be about ok 8.12.20):
 def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #no panel letters..
     #%
-#    journal='BMC Medicine' # or journal='BMC Medicine' or 'all journals'
-#    col='g'
+#    journal='all journals' # or journal='BMC Medicine' or 'all journals'
+#    col='C0' #or C0 or g
 #    count=100
 #    num=1
+    #Taking only unique elements:
     l2o=pd.concat([tot_res2])
     ok=np.unique(l2o[l2o.columns[1]])
     a1=len(ok)
+    
     PL3=l2o.set_index(l2o.columns[1])    
     lehs=PL3.loc[ok]
     jot=[]
+    
+    plehs=lehs[lehs.loc[:,'Journal Name']==journal]
+    pok=np.unique(plehs.index)
+    a2=len(pok)
+    
     if journal!='all journals':
-        plehs=lehs[lehs.loc[:,'Journal Name']==journal]
-        pok=np.unique(plehs.index)   
         for i in range(len(pok)):
             try:
                 if len(plehs.loc[pok[i],'Review Word Count']<count)>1:
@@ -775,14 +780,21 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
                     jot.append(0)
                     
     jota=pd.DataFrame(jot)
+    a=0
+    if journal!='all journals':
+        a=a1
+    elif journal=='all journals':
+        a=a1
+        
     b1=sum(jota[0]==1)   
-    tot=np.round(b1/a1*100,2)
+    tot=np.round(b1/a*100,2) #tulisko töhön jotain muuta, joo
     b2=sum(jota[0]>=0.5)  
-    tot50=np.round(b2/a1*100,2)
+    tot50=np.round(b2/a*100,2)
     b3=sum(jota[0]>=0.33)  
-    tot33=np.round(b3/a1*100,2)
+    tot33=np.round(b3/a*100,2)
     b4=sum(jota[0]>=0.2)  
-    tot20=np.round(b4/a1*100,2)
+    tot20=np.round(b4/a*100,2)
+    
     y=[tot,tot50,tot33,tot20]
     
     from math import sqrt
@@ -798,7 +810,7 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
         tit.append([y[i]-np.round(100*(wilson(y[i]/100, a1)[0]),2),\
                     np.round(100*(wilson(y[i]/100, a1)[1]),2)-y[i]])
     x=['100%', '≥50%', '≥33%','≥20%']
-    fonta=['Times New Roman', 20,'light',20]
+    fonta=['Times New Roman', 20,'light',20]   
 #    https://matplotlib.org/3.1.0/gallery/color/named_colors.html
 #    https://stackoverflow.com/questions/47074423/how-to-get-default-blue-colour-of-matplotlib-pyplot-scatter/47074742
 #    plt.scatter(x,y,color ='C0',linewidth=2)#, label=label[i])
@@ -810,7 +822,9 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
         title=journal
     elif journal=='all journals':
         title='All journals'
+        
 #    'Positive decision using short reviews\n (words<'+str(count)+') at'+' articles of '+
+#    use below title or.. just 'All journals' etc.
     plt.suptitle(title, y=1.05,x=0.5, \
              fontsize=20, fontfamily='Times New Roman')#, y=1.02)
     ax = plt.gca()
@@ -821,51 +835,69 @@ def preval_pers2(tot_res2, count=100, journal='BMC Medicine', col='g',num=1): #n
 #    https://matplotlib.org/devdocs/gallery/statistics/errorbar_features.html
     plt.grid(False)
     
-    if np.max(y)>40:
-        y_ticks=np.arange(0, np.round(np.max(y))+8, 10)   
-    elif np.max(y)>25 and np.max(y)<40:
-        y_ticks=np.arange(0, np.round(np.max(y))+5, 5)
-    elif np.max(y)>9 and np.max(y)<25:
-        y_ticks=np.arange(0, np.round(np.max(y))+3, 2)
-    elif np.max(y)<10 and np.max(y)>2.6:
-        y_ticks=np.arange(0, np.round(np.max(y))+2, 1)
-    elif np.max(y)<2.6 and np.max(y)>1:
-        y_ticks=np.arange(0, np.round(np.max(y))+1, 0.4)
-    elif np.max(y)<1:
-        y_ticks=np.arange(0, np.round(np.max(y))+1, 0.2)
-        
-    plt.yticks(y_ticks,size=fonta[1])
+#    if np.max(y)>40:
+#        y_ticks=np.arange(0, np.round(np.max(y))+9, 10)
+##    elif np.max(y)<40 :
+##        y_ticks=np.arange(0, np.round(np.max(y))+8, 2) 
+##        you may want to play with the presentations scheme..        
+#    elif np.max(y)>25 and np.max(y)<40:
+#        y_ticks=np.arange(0, np.round(np.max(y))+7, 5)
+#    elif np.max(y)>9 and np.max(y)<25:
+#        y_ticks=np.arange(0, np.round(np.max(y))+5, 2)
+#    elif np.max(y)<10 and np.max(y)>2.6:
+#        y_ticks=np.arange(0, np.round(np.max(y))+2.3, 1)
+#    elif np.max(y)<2.6 and np.max(y)>1:
+#        y_ticks=np.arange(0, np.round(np.max(y))+1.4, 0.4)
+#    elif np.max(y)<1:
+#        y_ticks=np.arange(0, np.round(np.max(y))+1, 0.2)
+    
+#    y_ticks=np.arange(0, np.round(np.max(y))+5, 5)   
+    plt.yticks(size=fonta[1])
     plt.xticks(size=fonta[1], visible=True)
 #    ax.legend(loc=(0.75,0.4),frameon=False,fontsize=fonta[1]) #%% 0/
-#    plt.axis((-0.5,4,-0.5,16)) #check this if needed..
+    plt.axis((-0.5,4,-0.025,74)) #check this if needed..
 #        https://stackoverflow.com/questions/22016965/removing-frame-while-keeping-axes-in-pyplot-subplots/44216223
 #        https://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+    import matplotlib.ticker as plticker
+    loc = plticker.MultipleLocator(base=10) # this locator puts ticks at regular intervals
+    ax.yaxis.set_major_locator(loc)
+#    https://stackoverflow.com/questions/12608788/changing-the-tick-frequency-on-x-or-y-axis-in-matplotlib?rq=1
     plt.tight_layout()    
 ###    https://stackoverflow.com/questions/44632571/pyplot-legend-only-displaying-one-letter
-    if num==4:
-        from matplotlib.lines import Line2D
-        cmap = plt.cm.coolwarm
-#        https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
-        custom_lines = [Line2D([0], [0], color='C0', lw=4),
-                        Line2D([0], [0], color='green', lw=4),
-                        Line2D([0], [0], color='red', lw=4),
-                        Line2D([0], [0], color='black', lw=4)]
-
-        ax.legend(custom_lines, ['All', 'BMC', 'BMJ','PLOS'],frameon=False,fontsize=20)
-    else:
-        pass
+#    if num==4:
+#        from matplotlib.lines import Line2D
+#        cmap = plt.cm.coolwarm
+##        https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
+#        custom_lines = [Line2D([0], [0], color='black', lw=4), #C0
+#                        Line2D([0], [0], color='black', lw=4), #green
+#                        Line2D([0], [0], color='black', lw=4), #red
+#                        Line2D([0], [0], color='black', lw=4)] #black
+#
+#        ax.legend(custom_lines, ['All', 'BMC', 'BMJ','PLOS'],\
+#                  frameon=False,loc=(0,0.45),fontsize=20) #check this location if needed
+#    else:
+#        pass
        
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.margins(0.1, 0.1) #These are important
-    plt.ylabel("Proportion of reviews (%)", size=fonta[1])
-    plt.xlabel("Percentage categories", size=fonta[1])  
+    plt.margins(0.1, 0.0) #These are important
+    plt.ylabel("Proportion of all articles (%)", size=fonta[1]) #now 14.1.21 I (tikka) check these, 
+    
+    
+    
+    asa = "Proportion of reviews (%)" 
+    asa += "\n"
+    asa += "per article with <400 words"
+#    https://stackoverflow.com/questions/10284847/python-matplotlib-annotate-line-break-with-and-without-latex/24807122
+#    "Proportion of reviews (%)/n per article with <100 words"
+    plt.xlabel(asa, size=fonta[1]) 
+#    https://stackoverflow.com/questions/21967639/how-to-write-a-plot-title-in-more-than-one-line-using-suptitle-in-python/21967777
     my_dpi=2400   
     plt.savefig('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_'+str(num)+'.jpg',dpi=my_dpi,figsize=(800/my_dpi, 800/my_dpi),bbox_inches='tight')        
     plt.close()
     #%
     return y
-#%%
+#%
 from docx import Document
 from docx.shared import Inches
 from docx.shared import Pt
@@ -877,15 +909,15 @@ font.size =Pt(10)
 p = document.add_paragraph("Peer Review Analysis \n")
 p.style = document.styles['Normal']
 r = p.add_run()   
-preval_pers2(tot_res2, count=500, journal='all journals', col='C0',num=1)
+preval_pers2(tot_res2, count=400, journal='all journals', col='black',num=1)
 r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_1.jpg', width = Inches(3))
-preval_pers2(tot_res2, count=500, journal='BMC Medicine', col='g',num=2)
+preval_pers2(tot_res2, count=400, journal='BMC Medicine', col='black',num=2)
 r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_2.jpg', width = Inches(3))
-preval_pers2(tot_res2, count=500, journal='BMJ', col='red',num=3)
+preval_pers2(tot_res2, count=400, journal='BMJ', col='black',num=3)
 r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_3.jpg', width = Inches(3))
-preval_pers2(tot_res2, count=500, journal='PLOS Medicine', col='black',num=4)
+preval_pers2(tot_res2, count=400, journal='PLOS Medicine', col='black',num=4)
 r.add_picture('C:\python\Fig4_revised\Proportion of reviews(%)_tikka81220_4.jpg', width = Inches(3))
-document.save("C:\\python\\Fig4_revised\\results4aa.docx")
+document.save("C:\\python\\Fig4_revised\\results_400N_1221.docx")
 #    tot=np.round(b1/a1*100,2) #this is the tot for first panel 100%..not necessarily so, i.e.:
     #out of all journal decisions that were made 
 #    (so this is our denominator – this will be equal to the number of articles (not reviewers) 
